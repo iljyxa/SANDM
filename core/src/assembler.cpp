@@ -28,7 +28,6 @@ Assembler::Assembler() :
     arg_modifier_map_ = {
         {"&", common::ArgModifier::REF}, {">", common::ArgModifier::GZ}, {"=", common::ArgModifier::EQ}
     };
-
 }
 
 common::ByteCode Assembler::Compile(const std::string& source) {
@@ -90,9 +89,9 @@ std::vector<std::string> Assembler::TestSource(const std::string& source) {
     return errors;
 }
 
-std::tuple<std::vector<Instruction>, std::unordered_map<std::string, uint32_t>, std::vector<std::string>> Assembler::ParseSource(
+std::tuple<std::vector<Instruction>, std::unordered_map<std::string, uint32_t>, std::vector<std::string>>
+Assembler::ParseSource(
     const std::string& source) {
-
     std::vector<Instruction> instructions;
     std::unordered_map<std::string, uint32_t> labels_addresses;
     std::vector<std::string> errors;
@@ -271,6 +270,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
 bool Assembler::IsArgumentModifier(const std::string& token) const {
     return arg_modifier_map_.contains(ToUpper(token));
 }
+
 bool Assembler::IsTypeModifier(const std::string& token) const {
     return type_modifier_map_.contains(ToUpper(token));
 }

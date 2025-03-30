@@ -44,6 +44,7 @@ qt_add_executable(SANDM main.cpp
         gui/src/virtual_machine_controller.cpp
         core/src/virtual_machine.cpp
         version.hpp
+        gui/include/style_colors.hpp
 )
 
 target_link_libraries(SANDM

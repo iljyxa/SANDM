@@ -12,8 +12,12 @@
 #include <QApplication>
 #include <QDirIterator>
 #include <QResource>
+#include <QStyleHints>
+#include <QStyleFactory>
+#include <QActionGroup>
 
 #include "../../gui/include/main_window.hpp"
+#include "../../gui/include/style_colors.hpp"
 
 /**
  * @brief Конструктор главного окна
@@ -28,10 +32,10 @@ MainWindow::MainWindow(QWidget* parent) :
     register_editor_(new RegisterEditor(this)),
     memory_table_model_(new MemoryModel(*vm_controller_, this)),
     memory_table_view_(new MemoryView(this)),
-    // ReSharper disable once CppDFAMemoryLeak
     console_(new Console(this)),
     status_bar_(new QStatusBar(this)),
     is_bytecode_fresh_(false) {
+
     const QFont font("Droid Sans Mono", 11);
     this->setFont(font);
 
@@ -62,7 +66,6 @@ MainWindow::MainWindow(QWidget* parent) :
     setStatusBar(status_bar_);
 
     connect(memory_table_view_, &MemoryView::CellHovered, this, &MainWindow::UpdateStatusBar);
-    connect(memory_table_view_, &MemoryView::CellHovered, this, &MainWindow::UpdateStatusBar);
 
     connect(vm_controller_, &VirtualMachineController::StateChanged, this, &MainWindow::OnStateVmChanged);
     connect(vm_controller_, &VirtualMachineController::Update, this, &MainWindow::OnUpdateVm);
@@ -85,8 +88,12 @@ MainWindow::MainWindow(QWidget* parent) :
             &VirtualMachineController::OnRemoveBreakpoint);
     connect(code_editor_, &CodeEditor::textChanged, this, &MainWindow::OnCodeChanged);
 
+    connect(this, &MainWindow::ThemeApplied, code_editor_, &CodeEditor::OnApplyTheme);
+
     CreateMenus();
     CreateToolBar();
+    CreateSettingsMenu();
+    ApplyTheme();
 }
 
 /**
@@ -143,9 +150,9 @@ void MainWindow::LoadExamples() {
     // Сортируем файлы по имени
     resourceFiles.sort();
 
-    for (const QString &resourcePath : resourceFiles) {
+    for (const QString& resourcePath : resourceFiles) {
         QString fileName = QFileInfo(resourcePath).fileName();
-        QAction *exampleAction = examples_menu_->addAction(fileName);
+        QAction* exampleAction = examples_menu_->addAction(fileName);
 
         connect(exampleAction, &QAction::triggered, this, [this, resourcePath]() {
             LoadExampleFromResource(resourcePath);
@@ -154,13 +161,12 @@ void MainWindow::LoadExamples() {
 
     // Если примеров нет, добавляем заглушку
     if (examples_menu_->actions().isEmpty()) {
-        QAction *noExamplesAction = examples_menu_->addAction("Нет доступных примеров");
+        QAction* noExamplesAction = examples_menu_->addAction("Нет доступных примеров");
         noExamplesAction->setEnabled(false);
     }
-
 }
 
-void MainWindow::LoadExampleFromResource(const QString &resourcePath) {
+void MainWindow::LoadExampleFromResource(const QString& resourcePath) {
     // Проверяем, есть ли несохраненные изменения
     if (!code_editor_->document()->isEmpty()) {
         QMessageBox::StandardButton reply = QMessageBox::question(
@@ -168,7 +174,7 @@ void MainWindow::LoadExampleFromResource(const QString &resourcePath) {
             "Подтверждение",
             "Текущий код будет заменен. Продолжить?",
             QMessageBox::Yes | QMessageBox::No
-        );
+            );
 
         if (reply == QMessageBox::No) {
             return;
@@ -342,11 +348,11 @@ void MainWindow::ShowAbout() {
         "<p><b>Версия: %1</b></p>"
         "<p>Сборка от %2 в %3</p>"
         "</center>"
-    ).arg(
+        ).arg(
         QApplication::applicationVersion(),
         QString(__DATE__),
         QString(__TIME__)
-    );
+        );
 
     QMessageBox aboutBox;
     aboutBox.setWindowTitle("О программе");
@@ -434,7 +440,6 @@ void MainWindow::Input(common::Bytes& bytes, common::Type& type) {
 }
 
 bool MainWindow::UpdateByteCode() {
-
     if (is_bytecode_fresh_) {
         return true;
     }
@@ -481,7 +486,6 @@ void MainWindow::OnDebug() {
 }
 
 void MainWindow::OnStateVmChanged(const VmState state, const bool debugging) const {
-
     SetToolbarActions(state, debugging);
     code_editor_->ClearHighlightedLines();
     if (state == PAUSED) {
@@ -490,7 +494,6 @@ void MainWindow::OnStateVmChanged(const VmState state, const bool debugging) con
 
     register_editor_->SetReadOnly(state == RUNNING);
     memory_table_view_->SetReadOnly(state == RUNNING);
-
 }
 
 void MainWindow::OnUpdateVm() const {
@@ -502,7 +505,6 @@ void MainWindow::OnUpdateVm() const {
     emit register_editor_->auxiliary_edit->setValue(static_cast<int>(auxiliary));
     emit register_editor_->page_table_index_edit->setValue(page_table_index);
     emit register_editor_->instruction_pointer_edit->setValue(instruction_pointer);
-
 }
 
 void MainWindow::OnErrorOccurred(const QString& error) const {
@@ -511,4 +513,60 @@ void MainWindow::OnErrorOccurred(const QString& error) const {
 
 void MainWindow::OnCodeChanged() {
     is_bytecode_fresh_ = false;
+}
+
+// Реализация новых методов:
+void MainWindow::CreateSettingsMenu() {
+    QMenu* settings_menu = menuBar()->addMenu("Настройки");
+
+    QMenu* theme_menu = settings_menu->addMenu("Тема");
+
+    // ReSharper disable once CppDFAMemoryLeak
+    auto* theme_group = new QActionGroup(this);
+    theme_group->setExclusive(true);
+
+    QAction* auto_theme_action = theme_menu->addAction("Системная");
+    auto_theme_action->setCheckable(true);
+    auto_theme_action->setChecked(true);
+    theme_group->addAction(auto_theme_action);
+
+    QAction* light_theme_action = theme_menu->addAction("Светлая");
+    light_theme_action->setCheckable(true);
+    theme_group->addAction(light_theme_action);
+
+    QAction* dark_theme_action = theme_menu->addAction("Темная");
+    dark_theme_action->setCheckable(true);
+    theme_group->addAction(dark_theme_action);
+
+    connect(auto_theme_action, &QAction::triggered, this, [this]() {
+        qApp->styleHints()->setColorScheme(Qt::ColorScheme::Unknown);
+        ApplyTheme();
+    });
+    connect(light_theme_action, &QAction::triggered, this, [this]() {
+        qApp->styleHints()->setColorScheme(Qt::ColorScheme::Light);
+        ApplyTheme();
+    });
+    connect(dark_theme_action, &QAction::triggered, this, [this]() {
+        qApp->styleHints()->setColorScheme(Qt::ColorScheme::Dark);
+        ApplyTheme();
+    });
+
+    connect(qApp->styleHints(), &QStyleHints::colorSchemeChanged, this, [this] {
+        ApplyTheme();
+    });
+}
+
+void MainWindow::ApplyTheme() {
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::Window, StyleColors::Main());
+    palette.setColor(QPalette::WindowText, StyleColors::Text());
+    palette.setColor(QPalette::Base, StyleColors::Background());
+    palette.setColor(QPalette::Text, StyleColors::Text());
+    palette.setColor(QPalette::Button, StyleColors::Background());
+    palette.setColor(QPalette::ButtonText, StyleColors::Text());
+    palette.setColor(QPalette::Highlight, StyleColors::TextHighlight());
+    this->setPalette(palette);
+    this->setAutoFillBackground(true);
+
+    emit ThemeApplied();
 }

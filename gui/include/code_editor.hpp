@@ -21,10 +21,14 @@ public:
     [[nodiscard]] int LineNumberAreaWidth() const;
     void HighlightLine(unsigned int line_number);
     void ClearHighlightedLines();
+    void ApplyTheme();
 
 signals:
     void BreakpointAdded(unsigned int breakpoint);
     void BreakpointRemoved(unsigned int breakpoint);
+
+public slots:
+    void OnApplyTheme();
 
 private slots:
     void UpdateLineNumberAreaWidth(int new_block_count);

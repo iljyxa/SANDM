@@ -150,13 +150,11 @@ VmState VirtualMachineController::GetState() const {
 }
 
 unsigned int VirtualMachineController::GetCurrentCodeLine() {
-
     if (const common::DoubleByte ip = processor_->GetInstructionPointer(); bytecode_to_source_map_.contains(ip)) {
         return bytecode_to_source_map_[ip];
     }
 
     return 0;
-
 }
 
 void VirtualMachineController::OnRegisterIpChanged(common::DoubleByte& instruction_pointer) {

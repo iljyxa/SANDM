@@ -47,7 +47,7 @@ std::pair<common::Byte, common::Bytes> MemoryManager::ReadInstruction(const comm
 }
 
 void MemoryManager::WriteInstruction(const common::Byte code, const common::Bytes argument,
-                                      const common::DoubleByte address) {
+                                     const common::DoubleByte address) {
     if (instructions_.size() < address + 1) {
         instructions_.resize(address + 1);
         arguments_.resize(address + 1);

@@ -7,7 +7,6 @@ Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, Process
     observer_(observer),
     io_(io),
     is_running_(false) {
-
     // nope
     instructions_handlers_[InstructionByte(common::OpCode::NOP, common::TypeModifier::C)] = [this] {
         Nope();
@@ -310,14 +309,12 @@ void Processor::ExecuteInstruction() {
     SetAuxiliary(use_memory ? memory_.ReadData(static_cast<common::DoubleByte>(argument)) : argument);
     try {
         instructions_handlers_[handler]();
-    } catch ([[maybe_unused]] std::bad_function_call &e) {
+    } catch ([[maybe_unused]] std::bad_function_call& e) {
         SetStatus(false);
         throw std::runtime_error(std::format("Error while executing: instruction {} at {} undefined",
-                                                 std::bitset<8>(handler).to_string(),
-                                                 registers.instruction_pointer));
+                                             std::bitset<8>(handler).to_string(),
+                                             registers.instruction_pointer));
     }
-
-
 }
 
 inline void Processor::NextInstruction() {

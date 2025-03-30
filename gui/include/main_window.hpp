@@ -25,6 +25,9 @@ public:
     // === Конструктор ===
     explicit MainWindow(QWidget* parent = nullptr);
 
+signals:
+    void ThemeApplied();
+
 private slots:
     // === Управление виртуальной машиной ===
     void OnRun();
@@ -56,6 +59,10 @@ private:
     QStatusBar* status_bar_;
     QMenu* examples_menu_;
 
+    // QMenu* settings_menu;
+    // QMenu* theme_menu;
+    // QActionGroup* theme_group;
+
     // === Действия панели инструментов ===
     QAction* action_start_;
     QAction* action_stop_;
@@ -64,8 +71,8 @@ private:
     QAction* action_step_;
 
     // === Состояние приложения ===
-    QString current_file_path_;  ///< Путь к текущему открытому файлу
-    bool is_bytecode_fresh_;     ///< Флаг актуальности байт-кода
+    QString current_file_path_; ///< Путь к текущему открытому файлу
+    bool is_bytecode_fresh_; ///< Флаг актуальности байт-кода
 
     // === Вспомогательные методы ===
     void CreateToolBar();
@@ -74,7 +81,9 @@ private:
     void CreateMenus();
     void LoadExamples();
     void LoadExampleFromResource(const QString& resourcePath);
-    void LoadExampleFile(const QString& file_path);
+    void CreateSettingsMenu();
+    bool isDarkTheme() const;
+    void ApplyTheme();
 
     // === Справка и информация ===
     void ShowHelp();

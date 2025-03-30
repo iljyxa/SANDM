@@ -9,7 +9,7 @@ class Console final : public QTextEdit {
     Q_OBJECT
 
 public:
-    explicit Console(QWidget *parent = nullptr) :
+    explicit Console(QWidget* parent = nullptr) :
         QTextEdit(parent), input_start_pos_(-1) {
         setReadOnly(true);
     }
@@ -31,11 +31,10 @@ public:
     }
 
 signals:
-    void InputFinished(const QString &text);
+    void InputFinished(const QString& text);
 
 protected:
-    void keyPressEvent(QKeyEvent *event) override {
-
+    void keyPressEvent(QKeyEvent* event) override {
         if (isReadOnly()) {
             QTextEdit::keyPressEvent(event);
             return;
@@ -46,7 +45,6 @@ protected:
         const int cursor_position = cursor.position();
         if (event->key() == Qt::Key_Up || event->key() == Qt::Key_Down
             || event->key() == Qt::Key_PageUp || event->key() == Qt::Key_PageDown) {
-
             return;
         }
 
@@ -57,7 +55,6 @@ protected:
             if (event->key() == Qt::Key_Backspace || event->key() == Qt::Key_Left) {
                 return;
             }
-
         }
 
         if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {

@@ -194,12 +194,12 @@ namespace common {
         }
     };
 
-    inline Byte InstructionByte(OpCode opcode, TypeModifier type_modifier, ArgModifier argument_modifier = ArgModifier::NONE) {
+    inline Byte InstructionByte(OpCode opcode, TypeModifier type_modifier,
+                                ArgModifier argument_modifier = ArgModifier::NONE) {
         return static_cast<uint8_t>(static_cast<uint8_t>(opcode) << 4) |
-               static_cast<uint8_t>(static_cast<uint8_t>(type_modifier) << 2) |
-               static_cast<uint8_t>(argument_modifier);
+            static_cast<uint8_t>(static_cast<uint8_t>(type_modifier) << 2) |
+            static_cast<uint8_t>(argument_modifier);
     }
-
 }
 
 #endif

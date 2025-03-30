@@ -1,4 +1,5 @@
 #include "../../gui/include/code_editor.hpp"
+#include "../../gui/include/style_colors.hpp"
 
 #include <QPainterPath>
 #include <QThreadPool>
@@ -7,7 +8,6 @@ CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
     QPlainTextEdit(parent),
     assembler_(assembler),
     hovered_line_(0) {
-
     // ReSharper disable once CppDFAMemoryLeak
     line_number_area_ = new LineNumberArea(this);
     line_number_area_->installEventFilter(this);
@@ -18,10 +18,6 @@ CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
 
     UpdateLineNumberAreaWidth(0);
     this->setFont(QFont("Droid Sans Mono", 13));
-
-    QPalette palette = this->palette();
-    palette.setColor(QPalette::Text, QColor(0xd4d4d4));
-    this->setPalette(palette);
 
     highlighter_ = new Highlighter(document());
 
@@ -34,18 +30,20 @@ CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
 }
 
 int CodeEditor::LineNumberAreaWidth() const {
-    int digits = 1;
+    int digits = 3;
     int max = qMax(1, blockCount());
-    while (max >= 10) {
+    while (max >= 1000) {
         max /= 10;
         ++digits;
     }
 
-    int space = 3 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
+    return 12 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
+}
 
-    space += 10; // 10 пикселей для кружка
-
-    return space;
+void CodeEditor::OnApplyTheme() {
+    ApplyTheme();
+    highlighter_->UpdateHighlightingRules();
+    highlighter_->rehighlight();
 }
 
 void CodeEditor::UpdateLineNumberAreaWidth(int /* newBlockCount */) {
@@ -71,10 +69,12 @@ void CodeEditor::resizeEvent(QResizeEvent* event) {
 
 void CodeEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const {
     QPainter painter(line_number_area_);
-    painter.fillRect(event->rect(), Qt::lightGray);
+    painter.fillRect(event->rect(), StyleColors::LineNumberAreaBackground());
 
-    constexpr int arrow_size = 8;
-    constexpr int circle_size = 12;
+    painter.setPen(StyleColors::LineNumberAreaSplitter());
+    painter.drawLine(line_number_area_->width() - 1, 0,
+                     line_number_area_->width() - 1, line_number_area_->height());
+
     const QFontMetrics fm = fontMetrics();
     const int font_height = fm.height();
 
@@ -85,24 +85,24 @@ void CodeEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const {
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
+            constexpr int circle_size = 14;
             const int current_line = block_number + 1;
 
-            // Рисуем желтую стрелку для подсвеченной строки
             if (highlighted_lines_.contains(current_line)) {
+                constexpr int arrow_size = 10;
                 painter.setBrush(QColor(255, 255, 0)); // Желтый цвет
                 painter.setPen(Qt::black);
 
-                const int arrow_x = line_number_area_->width() - arrow_size - 3;
+                constexpr int arrow_x = 0;
                 const int arrow_y = top + (font_height - arrow_size) / 2;
 
                 QPolygonF arrow;
                 arrow << QPointF(arrow_x, arrow_y);
-                arrow << QPointF(arrow_x + arrow_size, arrow_y + arrow_size / 2);
+                arrow << QPointF(arrow_x + arrow_size, arrow_y + arrow_size / 2); // NOLINT(*-integer-division)
                 arrow << QPointF(arrow_x, arrow_y + arrow_size);
                 painter.drawPolygon(arrow);
             }
 
-            // Остальная логика отрисовки (точки останова, hover) без изменений
             if (breakpoints_.contains(current_line)) {
                 painter.setBrush(QColor(200, 79, 79));
                 painter.setPen(Qt::NoPen);
@@ -124,7 +124,7 @@ void CodeEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const {
             // Номер строки
             if (!breakpoints_.contains(current_line)) {
                 QString number = QString::number(current_line);
-                painter.setPen(Qt::black);
+                painter.setPen(StyleColors::LineNumberAreaNumber());
                 painter.drawText(0, top, line_number_area_->width(), font_height,
                                  Qt::AlignRight, number);
             }
@@ -321,4 +321,10 @@ void CodeEditor::ClearHighlightedLines() {
     highlighted_lines_.clear();
     line_number_area_->update();
     viewport()->update();
+}
+
+void CodeEditor::ApplyTheme() {
+    QPalette palette = this->palette();
+    palette.setColor(QPalette::Text, StyleColors::CodeEditorOther());
+    this->setPalette(palette);
 }
