@@ -84,9 +84,14 @@ void VirtualMachineController::OnStop() {
 void VirtualMachineController::OnStep() {
     SetProcessorObserver(nullptr);
 
-    SetState(RUNNING);
-    VirtualMachine::Step();
-    SetState(PAUSED);
+    if (state_ == STOPPED) {
+        // Так как машина остановлена, необходимо встать на первую инструкцию, но не выполнять ее
+        SetState(PAUSED);
+    } else {
+        SetState(RUNNING);
+        VirtualMachine::Step();
+        SetState(PAUSED);
+    }
 }
 
 void VirtualMachineController::OnReset() {
