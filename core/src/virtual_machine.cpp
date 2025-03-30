@@ -112,7 +112,7 @@ void VirtualMachine::SetProcessorIo(ProcessorIo* processor_io) const {
 std::string VirtualMachine::BytesToString(const common::Bytes& bytes, const common::Type& type) {
     switch (type) {
     case common::Type::BYTE:
-        return std::to_string(static_cast<common::Byte>(bytes));
+        return std::basic_string(1, static_cast<char>(bytes));
     case common::Type::WORD:
         return std::to_string(static_cast<common::Word>(bytes));
     case common::Type::SIGNED_WORD:

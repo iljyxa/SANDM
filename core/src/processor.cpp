@@ -412,7 +412,7 @@ void Processor::Jmp() {
 
 template <typename T>
 void Processor::Jnz() {
-    if (static_cast<int>(registers.accumulator)) {
+    if (static_cast<T>(registers.accumulator)) {
         SetInstructionPointer(static_cast<T>(registers.auxiliary));
     } else {
         NextInstruction();
@@ -421,7 +421,7 @@ void Processor::Jnz() {
 
 template <typename T>
 void Processor::Jgz() {
-    if (static_cast<int>(registers.accumulator) > 0) {
+    if (static_cast<T>(registers.accumulator) > 0) {
         SetInstructionPointer(static_cast<T>(registers.auxiliary));
     } else {
         NextInstruction();

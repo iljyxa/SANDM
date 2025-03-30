@@ -70,9 +70,10 @@ private:
     // === Вспомогательные методы ===
     void CreateToolBar();
     void SetToolbarActions(VmState state, bool debugging) const;
-    void UpdateByteCode();
+    bool UpdateByteCode();
     void CreateMenus();
     void LoadExamples();
+    void LoadExampleFromResource(const QString& resourcePath);
     void LoadExampleFile(const QString& file_path);
 
     // === Справка и информация ===

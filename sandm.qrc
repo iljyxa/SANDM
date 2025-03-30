@@ -12,5 +12,6 @@
     </qresource>
     <qresource prefix="/docs">
         <file>README.md</file>
+        <file>examples/max(A, B).snm</file>
     </qresource>
 </RCC>

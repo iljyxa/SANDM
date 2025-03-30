@@ -1,0 +1,26 @@
+; Сравнение двух чисел, вывод наибольшего на экран
+; ввод А
+A: 0
+B: 1
+read r
+save A
+; ввод Б
+read r
+save B
+; сравнение чисел при помощи вычитания
+sub r & A
+jgz greater
+set r & A
+jmp end
+greater:
+set r & B
+end:
+write r
+
+; вывод OK
+set 10
+write c
+set 79
+write c
+set 75
+write c

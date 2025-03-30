@@ -9,10 +9,11 @@
 #include <QTextBrowser>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include <QApplication>
+#include <QDirIterator>
+#include <QResource>
 
 #include "../../gui/include/main_window.hpp"
-
-#include <QApplication>
 
 /**
  * @brief Конструктор главного окна
@@ -126,46 +127,58 @@ void MainWindow::CreateMenus() {
 void MainWindow::LoadExamples() {
     examples_menu_->clear();
 
-    QDir examples_dir("examples");
-    if (!examples_dir.exists()) {
-        return;
+    // Ищем все ресурсы, начинающиеся с :/docs/examples/
+    const QString resourcePrefix = ":/docs/examples/";
+    QResource::registerResource(qApp->applicationDirPath() + "/resources.rcc");
+
+    QStringList resourceFiles;
+    QDirIterator it(resourcePrefix, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        QString resourcePath = it.next();
+        if (resourcePath.endsWith(".snm")) {
+            resourceFiles << resourcePath;
+        }
     }
 
-    QStringList filters;
-    filters << "*.snm";
-    examples_dir.setNameFilters(filters);
+    // Сортируем файлы по имени
+    resourceFiles.sort();
 
-    for (const QFileInfo& file_info : examples_dir.entryInfoList(QDir::Files)) {
-        QAction* example_action = examples_menu_->addAction(file_info.fileName());
-        connect(example_action, &QAction::triggered, this, [this, file_info]() {
-            LoadExampleFile(file_info.absoluteFilePath());
+    for (const QString &resourcePath : resourceFiles) {
+        QString fileName = QFileInfo(resourcePath).fileName();
+        QAction *exampleAction = examples_menu_->addAction(fileName);
+
+        connect(exampleAction, &QAction::triggered, this, [this, resourcePath]() {
+            LoadExampleFromResource(resourcePath);
         });
     }
+
+    // Если примеров нет, добавляем заглушку
+    if (examples_menu_->actions().isEmpty()) {
+        QAction *noExamplesAction = examples_menu_->addAction("Нет доступных примеров");
+        noExamplesAction->setEnabled(false);
+    }
+
 }
 
-/**
- * @brief Загружает файл примера в редактор кода
- * @param file_path - полный путь к файлу примера
- *
- * Перед загрузкой запрашивает подтверждение, если в редакторе есть несохраненные изменения.
- */
-void MainWindow::LoadExampleFile(const QString& file_path) {
+void MainWindow::LoadExampleFromResource(const QString &resourcePath) {
+    // Проверяем, есть ли несохраненные изменения
     if (!code_editor_->document()->isEmpty()) {
         QMessageBox::StandardButton reply = QMessageBox::question(
             this,
             "Подтверждение",
             "Текущий код будет заменен. Продолжить?",
             QMessageBox::Yes | QMessageBox::No
-            );
+        );
 
         if (reply == QMessageBox::No) {
             return;
         }
     }
 
-    QFile file(file_path);
+    // Загружаем файл из ресурсов
+    QFile file(resourcePath);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::critical(this, "Ошибка", "Не удалось открыть файл примера");
+        QMessageBox::critical(this, "Ошибка", "Не удалось загрузить пример");
         return;
     }
 
@@ -420,9 +433,10 @@ void MainWindow::Input(common::Bytes& bytes, common::Type& type) {
     bytes = VirtualMachine::BytesFromString(input_string.toStdString(), type);
 }
 
-void MainWindow::UpdateByteCode() {
+bool MainWindow::UpdateByteCode() {
+
     if (is_bytecode_fresh_) {
-        return;
+        return true;
     }
 
     try {
@@ -430,22 +444,27 @@ void MainWindow::UpdateByteCode() {
             code_editor_->toPlainText().toStdString());
         vm_controller_->Load(byte_code, source_to_bytecode_map);
         is_bytecode_fresh_ = true;
+        return true;
     } catch (const std::exception& e) {
-        console_->append(QString(e.what()));
+        console_->append(QString(e.what()) + "\n");
     }
+
+    return false;
 }
 
 void MainWindow::OnRun() {
     vm_controller_->ResetProcessor();
 
-    UpdateByteCode();
+    if (!UpdateByteCode()) {
+        return;
+    }
 
     emit vm_controller_->OnRun();
 }
 
 void MainWindow::OnStep() {
-    if (vm_controller_->GetState() == STOPPED) {
-        UpdateByteCode();
+    if (vm_controller_->GetState() == STOPPED && !UpdateByteCode()) {
+        return;
     }
 
     emit vm_controller_->OnStep();
@@ -454,7 +473,9 @@ void MainWindow::OnStep() {
 void MainWindow::OnDebug() {
     vm_controller_->ResetProcessor();
 
-    UpdateByteCode();
+    if (!UpdateByteCode()) {
+        return;
+    }
 
     emit vm_controller_->OnDebug();
 }
@@ -485,7 +506,7 @@ void MainWindow::OnUpdateVm() const {
 }
 
 void MainWindow::OnErrorOccurred(const QString& error) const {
-    console_->append(error);
+    console_->append(error + "\n");
 }
 
 void MainWindow::OnCodeChanged() {
