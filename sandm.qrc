@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/resources">
+        <file>icons/icon.svg</file>
+        <file>icons/icon.ico</file>
+        <file>icons/start.png</file>
+        <file>icons/pause.png</file>
+        <file>icons/continue.png</file>
+        <file>icons/stop.png</file>
+        <file>icons/next.png</file>
+        <file>icons/debug.png</file>
+        <file>icons/sandm.svg</file>
+    </qresource>
+    <qresource prefix="/docs">
+        <file>README.md</file>
+    </qresource>
+</RCC>
