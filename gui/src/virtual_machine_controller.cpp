@@ -9,6 +9,8 @@ VirtualMachineController::VirtualMachineController(ProcessorIo* processor_io, QO
     SetProcessorIo(processor_io);
 }
 
+// === Управление машиной ===
+
 void VirtualMachineController::Load(const common::ByteCode& byte_code,
                                     common::SourceToBytecodeMap& source_to_bytecode_map) {
     VirtualMachine::Load(byte_code);
@@ -20,35 +22,6 @@ void VirtualMachineController::Load(const common::ByteCode& byte_code,
     }
 
     UpdateBreakpoints();
-}
-
-void VirtualMachineController::OnInsertBreakpoint(const unsigned int breakpoint) {
-    source_breakpoints_.insert(breakpoint);
-
-    if (source_to_bytecode_map_.contains(breakpoint)) {
-        breakpoints_.insert(source_to_bytecode_map_[breakpoint]);
-    }
-}
-
-void VirtualMachineController::OnRemoveBreakpoint(const unsigned int breakpoint) {
-    source_breakpoints_.remove(breakpoint);
-    if (source_to_bytecode_map_.contains(breakpoint)) {
-        breakpoints_.remove(source_to_bytecode_map_[breakpoint]);
-    }
-}
-
-void VirtualMachineController::OnClearBreakpoints() {
-    breakpoints_.clear();
-}
-
-void VirtualMachineController::UpdateBreakpoints() {
-    breakpoints_.clear();
-
-    for (auto breakpoint : source_breakpoints_) {
-        if (source_to_bytecode_map_.contains(breakpoint)) {
-            breakpoints_.insert(source_to_bytecode_map_[breakpoint]);
-        }
-    }
 }
 
 void VirtualMachineController::OnRun() {
@@ -119,23 +92,6 @@ void VirtualMachineController::OnPauseContinue() {
     }
 }
 
-void VirtualMachineController::OnAccumulatorEdited(const int value) {
-    SetAccumulator(value);
-}
-
-void VirtualMachineController::OnAuxiliaryEdited(const int value) {
-    SetAuxiliary(value);
-}
-
-void VirtualMachineController::OnInstructionPointerEdited(const int value) {
-    SetInstructionPointer(value);
-}
-
-void VirtualMachineController::OnPageTableIndexEdited(const int value) {
-    SetPageTableIndex(value);
-    emit Update();
-}
-
 void VirtualMachineController::SetState(const VmState state) {
     if (state_ == state) {
         return;
@@ -161,6 +117,58 @@ unsigned int VirtualMachineController::GetCurrentCodeLine() {
 
     return 0;
 }
+
+// === Точки останова ===
+
+void VirtualMachineController::OnInsertBreakpoint(const unsigned int breakpoint) {
+    source_breakpoints_.insert(breakpoint);
+
+    if (source_to_bytecode_map_.contains(breakpoint)) {
+        breakpoints_.insert(source_to_bytecode_map_[breakpoint]);
+    }
+}
+
+void VirtualMachineController::OnRemoveBreakpoint(const unsigned int breakpoint) {
+    source_breakpoints_.remove(breakpoint);
+    if (source_to_bytecode_map_.contains(breakpoint)) {
+        breakpoints_.remove(source_to_bytecode_map_[breakpoint]);
+    }
+}
+
+void VirtualMachineController::OnClearBreakpoints() {
+    breakpoints_.clear();
+}
+
+void VirtualMachineController::UpdateBreakpoints() {
+    breakpoints_.clear();
+
+    for (auto breakpoint : source_breakpoints_) {
+        if (source_to_bytecode_map_.contains(breakpoint)) {
+            breakpoints_.insert(source_to_bytecode_map_[breakpoint]);
+        }
+    }
+}
+
+// === Обработчики изменений регистров ===
+
+void VirtualMachineController::OnAccumulatorEdited(const int value) {
+    SetAccumulator(value);
+}
+
+void VirtualMachineController::OnAuxiliaryEdited(const int value) {
+    SetAuxiliary(value);
+}
+
+void VirtualMachineController::OnInstructionPointerEdited(const int value) {
+    SetInstructionPointer(value);
+}
+
+void VirtualMachineController::OnPageTableIndexEdited(const int value) {
+    SetPageTableIndex(value);
+    emit Update();
+}
+
+// === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
 void VirtualMachineController::OnRegisterIpChanged(common::DoubleByte& instruction_pointer) {
     if (debugging_ && breakpoints_.contains(instruction_pointer)) {
