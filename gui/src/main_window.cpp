@@ -19,11 +19,6 @@
 #include "../../gui/include/main_window.hpp"
 #include "../../gui/include/style_colors.hpp"
 
-/**
- * @brief Конструктор главного окна
- *
- * Инициализирует все компоненты интерфейса и настраивает соединения между ними.
- */
 MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),
     vm_controller_(new VirtualMachineController(this)),
@@ -33,7 +28,14 @@ MainWindow::MainWindow(QWidget* parent) :
     memory_table_model_(new MemoryModel(*vm_controller_, this)),
     memory_table_view_(new MemoryView(this)),
     console_(new Console(this)),
+    tool_bar_(new QToolBar(this)),
     status_bar_(new QStatusBar(this)),
+    examples_menu_(new QMenu(this)),
+    action_start_(new QAction(this)),
+    action_stop_(new QAction(this)),
+    action_pause_continue_(new QAction(this)),
+    action_debug_(new QAction(this)),
+    action_step_(new QAction(this)),
     is_bytecode_fresh_(false) {
 
     const QFont font("Droid Sans Mono", 11);
@@ -96,17 +98,12 @@ MainWindow::MainWindow(QWidget* parent) :
     ApplyTheme();
 }
 
-/**
- * @brief Создает меню приложения
- *
- * Инициализирует меню "Файл", "Примеры" и "Помощь" с соответствующими действиями.
- */
 void MainWindow::CreateMenus() {
     QMenu* file_menu = menuBar()->addMenu("Файл");
-    QAction* open_action = file_menu->addAction("Открыть");
-    QAction* save_action = file_menu->addAction("Сохранить");
-    QAction* save_as_action = file_menu->addAction("Сохранить как ...");
-    QAction* exit_action = file_menu->addAction("Выход");
+    const QAction* open_action = file_menu->addAction("Открыть");
+    const QAction* save_action = file_menu->addAction("Сохранить");
+    const QAction* save_as_action = file_menu->addAction("Сохранить как ...");
+    const QAction* exit_action = file_menu->addAction("Выход");
 
     connect(open_action, &QAction::triggered, this, &MainWindow::OnOpenFile);
     connect(save_action, &QAction::triggered, this, &MainWindow::OnSaveFile);
@@ -119,38 +116,33 @@ void MainWindow::CreateMenus() {
 
     // Меню помощи
     QMenu* help_menu = menuBar()->addMenu("Помощь");
-    QAction* help_action = help_menu->addAction("Справка");
-    QAction* about_action = help_menu->addAction("О программе");
+    const QAction* help_action = help_menu->addAction("Справка");
+    const QAction* about_action = help_menu->addAction("О программе");
 
     connect(help_action, &QAction::triggered, this, &MainWindow::ShowHelp);
     connect(about_action, &QAction::triggered, this, &MainWindow::ShowAbout);
 }
 
-/**
- * @brief Загружает список примеров из папки examples
- *
- * Сканирует папку examples на наличие файлов .snm и добавляет их в меню "Примеры".
- */
 void MainWindow::LoadExamples() {
     examples_menu_->clear();
 
     // Ищем все ресурсы, начинающиеся с :/docs/examples/
-    const QString resourcePrefix = ":/docs/examples/";
+    const QString resource_prefix = ":/docs/examples/";
     QResource::registerResource(qApp->applicationDirPath() + "/resources.rcc");
 
-    QStringList resourceFiles;
-    QDirIterator it(resourcePrefix, QDirIterator::Subdirectories);
+    QStringList resource_files;
+    QDirIterator it(resource_prefix, QDirIterator::Subdirectories);
     while (it.hasNext()) {
         QString resourcePath = it.next();
         if (resourcePath.endsWith(".snm")) {
-            resourceFiles << resourcePath;
+            resource_files << resourcePath;
         }
     }
 
     // Сортируем файлы по имени
-    resourceFiles.sort();
+    resource_files.sort();
 
-    for (const QString& resourcePath : resourceFiles) {
+    for (const QString& resourcePath : resource_files) {
         QString fileName = QFileInfo(resourcePath).fileName();
         QAction* exampleAction = examples_menu_->addAction(fileName);
 
@@ -166,7 +158,7 @@ void MainWindow::LoadExamples() {
     }
 }
 
-void MainWindow::LoadExampleFromResource(const QString& resourcePath) {
+void MainWindow::LoadExampleFromResource(const QString& resource_path) {
     // Проверяем, есть ли несохраненные изменения
     if (!code_editor_->document()->isEmpty()) {
         QMessageBox::StandardButton reply = QMessageBox::question(
@@ -182,7 +174,7 @@ void MainWindow::LoadExampleFromResource(const QString& resourcePath) {
     }
 
     // Загружаем файл из ресурсов
-    QFile file(resourcePath);
+    QFile file(resource_path);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QMessageBox::critical(this, "Ошибка", "Не удалось загрузить пример");
         return;
@@ -273,12 +265,6 @@ void MainWindow::OnSaveAsFile() {
     OnSaveFile();
 }
 
-/**
- * @brief Отображает окно справки с содержимым README.md
- *
- * Загружает Markdown-содержимое из файла ресурсов и отображает его в диалоговом окне
- * с поддержкой базового форматирования Markdown.
- */
 void MainWindow::ShowHelp() {
     // Создаем диалоговое окно
     // ReSharper disable once CppDFAMemoryLeak
@@ -288,10 +274,10 @@ void MainWindow::ShowHelp() {
 
     // Создаем текстовый браузер с поддержкой Markdown
     // ReSharper disable once CppDFAMemoryLeak
-    auto* textBrowser = new QTextBrowser(helpDialog);
-    textBrowser->setOpenExternalLinks(true);
-    textBrowser->setOpenLinks(false);
-    connect(textBrowser, &QTextBrowser::anchorClicked, [](const QUrl& link) {
+    auto* text_browser = new QTextBrowser(helpDialog);
+    text_browser->setOpenExternalLinks(true);
+    text_browser->setOpenLinks(false);
+    connect(text_browser, &QTextBrowser::anchorClicked, [](const QUrl& link) {
         QDesktopServices::openUrl(link); // Открываем внешние ссылки в браузере
     });
 
@@ -311,7 +297,7 @@ void MainWindow::ShowHelp() {
     }
 
     // Устанавливаем Markdown-контент
-    textBrowser->setMarkdown(markdown_content);
+    text_browser->setMarkdown(markdown_content);
 
     // Добавляем кнопки
     // ReSharper disable once CppDFAMemoryLeak
@@ -321,7 +307,7 @@ void MainWindow::ShowHelp() {
     // Настройка layout
     // ReSharper disable once CppDFAMemoryLeak
     auto* main_layout = new QVBoxLayout(helpDialog);
-    main_layout->addWidget(textBrowser);
+    main_layout->addWidget(text_browser);
 
     // ReSharper disable once CppDFAMemoryLeak
     auto* button_layout = new QHBoxLayout();
@@ -335,11 +321,6 @@ void MainWindow::ShowHelp() {
     helpDialog->deleteLater();
 }
 
-/**
- * @brief Отображает диалоговое окно "О программе"
- *
- * Показывает информацию о версии, названии и авторе приложения.
- */
 void MainWindow::ShowAbout() {
     const QString aboutText = QString(
         "<center>"
@@ -354,11 +335,11 @@ void MainWindow::ShowAbout() {
         QString(__TIME__)
         );
 
-    QMessageBox aboutBox;
-    aboutBox.setWindowTitle("О программе");
-    aboutBox.setText(aboutText);
-    aboutBox.setIconPixmap(QPixmap(":/resources/icons/sandm.svg").scaled(64, 64));
-    aboutBox.exec();
+    QMessageBox about_box;
+    about_box.setWindowTitle("О программе");
+    about_box.setText(aboutText);
+    about_box.setIconPixmap(QPixmap(":/resources/icons/sandm.svg").scaled(64, 64));
+    about_box.exec();
 }
 
 void MainWindow::CreateToolBar() {
@@ -413,27 +394,11 @@ void MainWindow::UpdateStatusBar(const int row, const int column, const common::
     statusBar()->showMessage(status_text);
 }
 
-/**
- * @brief Обрабатывает вывод данных из виртуальной машины
- * @param bytes - данные для вывода
- * @param type - тип выводимых данных
- *
- * Реализация чисто виртуального метода из ProcessorIo.
- * Преобразует байты в строку согласно типу и выводит в консоль.
- */
 void MainWindow::Output(common::Bytes& bytes, common::Type& type) {
     const QString output_string(VirtualMachine::BytesToString(bytes, type).data());
     console_->insertPlainText(output_string);
 }
 
-/**
- * @brief Обрабатывает ввод данных от виртуальной машины
- * @param bytes - ссылка для записи введенных данных
- * @param type - тип вводимых данных
- *
- * Реализация чисто виртуального метода из ProcessorIo.
- * Получает ввод из консоли и преобразует его в байты согласно указанному типу.
- */
 void MainWindow::Input(common::Bytes& bytes, common::Type& type) {
     const QString input_string = console_->GetInputString();
     bytes = VirtualMachine::BytesFromString(input_string.toStdString(), type);

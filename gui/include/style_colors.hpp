@@ -1,8 +1,8 @@
 #ifndef COLORS_HPP
 #define COLORS_HPP
 
-#include <QColor>
 #include <QApplication>
+#include <QColor>
 #include <QStyleHints>
 
 class StyleColors {

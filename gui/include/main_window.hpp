@@ -22,28 +22,77 @@ class MainWindow final : public QMainWindow, public ProcessorIo {
     Q_OBJECT
 
 public:
-    // === Конструктор ===
+    /**
+     * @brief Конструктор главного окна
+     * @param parent Родительский виджет (по умолчанию nullptr)
+     */
     explicit MainWindow(QWidget* parent = nullptr);
 
 signals:
+    /**
+     * @brief Сигнал, испускаемый при применении новой темы
+     */
     void ThemeApplied();
 
 private slots:
     // === Управление виртуальной машиной ===
+    /**
+     * @brief Обработчик запуска виртуальной машины. Перед запуском сбрасывает текущее состояние виртуальной машины
+     * и выполняет трансляцию исходного кода (при необходимости) и его загрузку.
+     */
     void OnRun();
+    /**
+     * @brief Обработчик выполнения одного шага программы. Если виртуальная машина остановлена, выполняет трансляцию
+     * исходного кода (при необходимости) и его загрузку.
+     */
     void OnStep();
+    /**
+     * @brief Обработчик запуска виртуальной машины в режиме отладки. Перед запуском сбрасывает текущее состояние
+     * виртуальной машины и выполняет трансляцию исходного кода (при необходимости) и его загрузку.
+     * В режиме отладки выполнение приостанавливается на точках останова.
+     */
     void OnDebug();
+    /**
+     * @brief Полное обновление состояния виртуальной машины: памяти, регистров.
+     */
     void OnUpdateVm() const;
+    /**
+     * @brief Обработчик изменения состояния виртуальной машины
+     * @param state Новое состояние виртуальной машины
+     * @param debugging Флаг режима отладки
+     */
     void OnStateVmChanged(VmState state, bool debugging) const;
+    /**
+     * @brief Обработчик возникновения ошибки. Выполняет вывод ошибки в консоль.
+     * @param error Сообщение об ошибке
+     */
     void OnErrorOccurred(const QString& error) const;
+    /**
+     * @brief Обработчик изменения кода в редакторе. Устанавливает признак необходимости обновления байт-кода
+     */
     void OnCodeChanged();
 
     // === Файловые операции ===
+    /**
+     * @brief Обработчик открытия файла
+     */
     void OnOpenFile();
+    /**
+     * @brief Обработчик сохранения файла
+     */
     void OnSaveFile();
+    /**
+     * @brief Обработчик сохранения файла с выбором имени
+     */
     void OnSaveAsFile();
 
     // === Взаимодействие с пользователем ===
+    /**
+     * @brief Обновление строки состояния
+     * @param row Номер строки
+     * @param column Номер столбца
+     * @param value Значение в ячейке памяти
+     */
     void UpdateStatusBar(int row, int column, common::Word value) const;
 
 private:
@@ -58,10 +107,6 @@ private:
     QToolBar* tool_bar_;
     QStatusBar* status_bar_;
     QMenu* examples_menu_;
-
-    // QMenu* settings_menu;
-    // QMenu* theme_menu;
-    // QActionGroup* theme_group;
 
     // === Действия панели инструментов ===
     QAction* action_start_;
@@ -80,9 +125,8 @@ private:
     bool UpdateByteCode();
     void CreateMenus();
     void LoadExamples();
-    void LoadExampleFromResource(const QString& resourcePath);
+    void LoadExampleFromResource(const QString& resource_path);
     void CreateSettingsMenu();
-    bool isDarkTheme() const;
     void ApplyTheme();
 
     // === Справка и информация ===
