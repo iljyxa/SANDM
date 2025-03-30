@@ -454,7 +454,9 @@ void MainWindow::OnStateVmChanged(const VmState state, const bool debugging) con
     SetToolbarActions(state, debugging);
     code_editor_->ClearHighlightedLines();
     if (state == PAUSED) {
-        code_editor_->HighlightLine(vm_controller_->GetCurrentCodeLine());
+        const int current_line = vm_controller_->GetCurrentCodeLine();
+        code_editor_->ScrollToLine(current_line);
+        code_editor_->HighlightLine(current_line);
     }
 
     register_editor_->SetReadOnly(state == RUNNING);

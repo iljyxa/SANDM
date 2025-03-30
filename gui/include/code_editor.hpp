@@ -21,7 +21,7 @@ public:
     [[nodiscard]] int LineNumberAreaWidth() const;
     void HighlightLine(unsigned int line_number);
     void ClearHighlightedLines();
-    void ApplyTheme();
+    void ScrollToLine(int line_number);
 
 signals:
     void BreakpointAdded(unsigned int breakpoint);
@@ -57,6 +57,7 @@ private:
 
     static void DrawWavyLine(QPainter& painter, const QPointF& start, const QPointF& end);
     void AnalyzeCode();
+    void ApplyTheme();
 };
 
 class LineNumberArea final : public QWidget {

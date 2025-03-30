@@ -328,3 +328,14 @@ void CodeEditor::ApplyTheme() {
     palette.setColor(QPalette::Text, StyleColors::CodeEditorOther());
     this->setPalette(palette);
 }
+
+void CodeEditor::ScrollToLine(const int line_number) {
+    // Получаем блок текста по номеру строки (нумерация с 0)
+
+    if (const QTextBlock block = document()->findBlockByNumber(line_number - 1); block.isValid()) {
+        const QTextCursor cursor(block);
+        setTextCursor(cursor);
+
+        centerCursor();
+    }
+}
