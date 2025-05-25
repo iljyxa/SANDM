@@ -23,14 +23,14 @@ public:
         return row * rowCount() + column;
     }
 
-    [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override {
+    [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override { // NOLINT(*-default-arguments)
         Q_UNUSED(parent);
-        return common::PAGE_SIZE / 8;
+        return common::CODE_MEMORY_SIZE / columnCount(); // NOLINT(*-narrowing-conversions)
     }
 
-    [[nodiscard]] int columnCount(const QModelIndex& parent = QModelIndex()) const override {
+    [[nodiscard]] int columnCount(const QModelIndex& parent = QModelIndex()) const override { // NOLINT(*-default-arguments)
         Q_UNUSED(parent);
-        return common::PAGE_SIZE / 8;
+        return 16;
     }
 
     [[nodiscard]] QVariant data(const QModelIndex& index, const int role) const override {

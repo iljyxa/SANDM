@@ -1,9 +1,6 @@
 #ifndef MEMORY_MANAGER_HPP
 #define MEMORY_MANAGER_HPP
 
-#include <array>
-#include <memory>
-#include <unordered_map>
 #include <vector>
 #include "common_definitions.hpp"
 
@@ -13,23 +10,19 @@ public:
 
     void Load(const common::ByteCode &byte_code);
 
-    std::pair<common::Byte, common::Bytes> ReadInstruction(common::DoubleByte address);
-
     void WriteInstruction(common::Byte code, common::Bytes argument, common::DoubleByte address);
     void WriteInstruction(common::Byte code, common::Bytes argument);
+    std::pair<common::Byte, common::Bytes> ReadInstruction(common::DoubleByte address);
 
-    common::Bytes ReadData(common::DoubleByte address);
-    void WriteData(common::DoubleByte address, common::Bytes value);
+    void WriteArgument(common::Bytes argument, common::DoubleByte address);
+    common::Bytes ReadArgument(common::DoubleByte address);
+
     void Reset();
-    void ResetData();
-    void ResetInstructions();
-
-    std::vector<common::Byte> instructions_;
-    std::vector<common::Bytes> arguments_;
+    [[nodiscard]] size_t Size() const;
 
 private:
-
-    std::unordered_map<common::Byte, common::Page> data_;
+    std::vector<common::Byte> instructions_;
+    std::vector<common::Bytes> arguments_;
 };
 
 #endif

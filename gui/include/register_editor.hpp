@@ -15,13 +15,11 @@ public:
     HexSpinBox* accumulator_edit;
     HexSpinBox* auxiliary_edit;
     QSpinBox* instruction_pointer_edit;
-    QSpinBox* page_table_index_edit;
 
 signals:
     void AccumulatorEdited(int value);
     void AuxiliaryEdited(int value);
     void InstructionPointerEdited(int value);
-    void PageTableIndexEdited(int value);
 
 private:
     static HexSpinBox* NewHexEdit(QWidget* parent);

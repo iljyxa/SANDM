@@ -50,7 +50,8 @@ void VirtualMachineController::OnStop() {
 
     VirtualMachine::Stop();
     processor_->Reset();
-    memory_manager_->ResetData();
+    // TODO:
+    //memory_manager_->ResetData();
     SetState(STOPPED);
 }
 
@@ -163,14 +164,9 @@ void VirtualMachineController::OnInstructionPointerEdited(const int value) {
     SetInstructionPointer(value);
 }
 
-void VirtualMachineController::OnPageTableIndexEdited(const int value) {
-    SetPageTableIndex(value);
-    emit Update();
-}
-
 // === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
-void VirtualMachineController::OnRegisterIpChanged(common::DoubleByte& instruction_pointer) {
+void VirtualMachineController::OnRegisterIpChanged(const common::DoubleByte& instruction_pointer) {
     if (debugging_ && breakpoints_.contains(instruction_pointer)) {
         VirtualMachine::Stop();
         SetState(PAUSED);
@@ -183,10 +179,7 @@ void VirtualMachineController::OnRegisterAccChanged(const common::Bytes& accumul
 void VirtualMachineController::OnRegisterAuxChanged(const common::Bytes& auxiliary) {
 }
 
-void VirtualMachineController::OnRegisterPtiChanged(common::Byte& page_table_index) {
-}
-
-void VirtualMachineController::OnMemoryChanged(common::DoubleByte& address) {
+void VirtualMachineController::OnMemoryChanged(const common::DoubleByte& address) {
 }
 
 void VirtualMachineController::OnStatusChanged(bool& is_running) {

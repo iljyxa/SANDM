@@ -32,14 +32,12 @@ void VirtualMachine::Step() {
     processor_->Step();
 }
 
-common::Bytes VirtualMachine::ReadMemory(const common::Byte& virtual_address) {
-    const common::DoubleByte address = common::PAGE_SIZE * processor_->GetPageTableIndex() + virtual_address;
-    return memory_manager_->ReadData(address);
+common::Bytes VirtualMachine::ReadMemory(const common::Byte& address) {
+    return memory_manager_->ReadArgument(address);
 }
 
-void VirtualMachine::WriteMemory(const common::Byte& virtual_address, const common::Bytes& data) {
-    const common::DoubleByte address = common::PAGE_SIZE * processor_->GetPageTableIndex() + virtual_address;
-    memory_manager_->WriteData(address, data);
+void VirtualMachine::WriteMemory(const common::Byte& address, const common::Bytes& data) {
+    memory_manager_->WriteArgument(data, address);
 }
 
 bool VirtualMachine::IsRunning() {
@@ -52,10 +50,6 @@ Registers VirtualMachine::GetRegisters() {
 
 void VirtualMachine::SetInstructionPointer(const common::DoubleByte value) {
     processor_->SetInstructionPointer(value);
-}
-
-void VirtualMachine::SetPageTableIndex(const common::Byte value) {
-    processor_->SetPageTableIndex(value);
 }
 
 void VirtualMachine::SetAccumulator(const common::Byte value) {

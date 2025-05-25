@@ -59,12 +59,11 @@ public:
 
     // === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
-    void OnRegisterPtiChanged(common::Byte& page_table_index) override;
-    void OnMemoryChanged(common::DoubleByte& address) override;
+    void OnMemoryChanged(const common::DoubleByte& address) override;
     void OnStatusChanged(bool& is_running) override;
     void OnRegisterAccChanged(const common::Bytes& accumulator) override;
     void OnRegisterAuxChanged(const common::Bytes& auxiliary) override;
-    void OnRegisterIpChanged(common::DoubleByte& instruction_pointer) override;
+    void OnRegisterIpChanged(const common::DoubleByte& instruction_pointer) override;
 
 public slots:
     // === Управление состоянием машины ===
@@ -127,11 +126,6 @@ public slots:
      * @param value Новое значение указателя инструкций.
      */
     void OnInstructionPointerEdited(int value);
-    /**
-     * @brief Обрабатывает изменение значения индекса таблицы страниц.
-     * @param value Новое значение индекса таблицы страниц.
-     */
-    void OnPageTableIndexEdited(int value);
 
 signals:
     /**

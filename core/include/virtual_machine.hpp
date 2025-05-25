@@ -19,8 +19,8 @@ public:
     VirtualMachine& operator=(VirtualMachine&&) = default;
 
     virtual void Load(const common::ByteCode& byte_code);
-    [[nodiscard]] virtual common::Bytes ReadMemory(const common::Byte& virtual_address);
-    virtual void WriteMemory(const common::Byte& virtual_address, const common::Bytes& data);
+    [[nodiscard]] virtual common::Bytes ReadMemory(const common::Byte& address);
+    virtual void WriteMemory(const common::Byte& address, const common::Bytes& data);
 
     virtual void Run();
     virtual void Stop();
@@ -31,7 +31,6 @@ public:
     [[nodiscard]] virtual Registers GetRegisters();
 
     virtual void SetInstructionPointer(common::DoubleByte value);
-    virtual void SetPageTableIndex(common::Byte value);
     virtual void SetAccumulator(common::Byte value);
     virtual void SetAccumulator(common::Word value);
     virtual void SetAccumulator(common::SignedWord value);

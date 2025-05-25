@@ -13,13 +13,11 @@ struct Registers {
     common::Bytes accumulator{};
     common::Bytes auxiliary{};
     common::DoubleByte instruction_pointer = 0;
-    common::Byte page_table_index = 0;
 };
 
 class Processor {
 public:
     explicit Processor(MemoryManager& memory, ProcessorObserver* observer = nullptr, ProcessorIo* io = nullptr);
-    Registers registers;
 
     void Run();
     void Step();
@@ -32,25 +30,23 @@ public:
     const common::DoubleByte& GetInstructionPointer() const;
     void SetInstructionPointer(common::DoubleByte value);
     const common::Bytes& GetAuxiliary() const;
-    const common::Byte& GetPageTableIndex() const;
-    void SetPageTableIndex(common::Byte value);
     const bool& IsRunning() const;
 
     template <typename T>
     void SetAccumulator(const T &value) {
-        registers.accumulator = value;
+        registers_.accumulator = value;
 
         if (observer_) {
-            observer_->OnRegisterAccChanged(registers.accumulator);
+            observer_->OnRegisterAccChanged(registers_.accumulator);
         }
     }
 
     template <typename T>
     void SetAuxiliary(const T &value) {
-        registers.auxiliary = value;
+        registers_.auxiliary = value;
 
         if (observer_) {
-            observer_->OnRegisterAuxChanged(registers.auxiliary);
+            observer_->OnRegisterAuxChanged(registers_.auxiliary);
         }
     }
 
@@ -58,8 +54,9 @@ private:
     MemoryManager& memory_;
     ProcessorObserver* observer_;
     ProcessorIo* io_;
+    std::array<std::function<void()>, std::numeric_limits<common::Byte>::max() + 1> instructions_handlers_;
+    Registers registers_;
     bool is_running_;
-    std::array<std::function<void()>, 256> instructions_handlers_;
 
     void ExecuteInstruction();
     void NextInstruction();
@@ -69,54 +66,30 @@ private:
     static common::Type TypeIo();
 
     void Nope();
-
     template <typename T>
     void Add();
-
     template <class T>
     void Sub();
-
     template <class T>
     void Mul();
-
     template <class T>
     void Div();
-
-    template <class T>
-    void Jmp();
-
-    template <class T>
-    void Set();
-
-    template <class T>
-    void Jnz();
-
-    template <class T>
-    void Jgz();
-
-    template <class T>
-    void Cpsg();
-
-    template <class T>
-    void Cpse();
-
-    template <class T>
-    void Load();
-
     template <class T>
     void Mod();
-
+    void Load();
+    void Store();
     template <class T>
-    void Page();
-
+    void Input();
     template <class T>
-    void Save();
-
+    void Output();
+    void Jump();
     template <class T>
-    void Read();
-
+    void SkipLower();
     template <class T>
-    void Write();
+    void SkipGreater();
+    template <class T>
+    void SkipEqual();
+    void JumpAndStore();
 
 };
 

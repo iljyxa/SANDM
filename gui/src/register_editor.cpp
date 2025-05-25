@@ -6,7 +6,6 @@ RegisterEditor::RegisterEditor(QWidget* parent) :
     accumulator_edit = NewHexEdit(this);
     auxiliary_edit = NewHexEdit(this);
     instruction_pointer_edit = NewDecEdit(this);
-    page_table_index_edit = NewDecEdit(this);
 
     // ReSharper disable once CppDFAMemoryLeak
     auto* form_layout = new QFormLayout(this);
@@ -14,14 +13,11 @@ RegisterEditor::RegisterEditor(QWidget* parent) :
     form_layout->addRow("Accumulator:", accumulator_edit);
     form_layout->addRow("Auxiliary:", auxiliary_edit);
     form_layout->addRow("Instruction Pointer:", instruction_pointer_edit);
-    form_layout->addRow("Page Table Index:", page_table_index_edit);
 
     connect(accumulator_edit, QOverload<int>::of(&QSpinBox::valueChanged), this, &RegisterEditor::AccumulatorEdited);
     connect(auxiliary_edit, QOverload<int>::of(&QSpinBox::valueChanged), this, &RegisterEditor::AuxiliaryEdited);
     connect(instruction_pointer_edit, QOverload<int>::of(&QSpinBox::valueChanged), this,
             &RegisterEditor::InstructionPointerEdited);
-    connect(page_table_index_edit, QOverload<int>::of(&QSpinBox::valueChanged), this,
-            &RegisterEditor::PageTableIndexEdited);
 }
 
 HexSpinBox* RegisterEditor::NewHexEdit(QWidget* parent) {
@@ -40,5 +36,4 @@ void RegisterEditor::SetReadOnly(const bool read_only) const {
     accumulator_edit->setReadOnly(read_only);
     auxiliary_edit->setReadOnly(read_only);
     instruction_pointer_edit->setReadOnly(read_only);
-    page_table_index_edit->setReadOnly(read_only);
 }

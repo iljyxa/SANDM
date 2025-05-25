@@ -48,9 +48,13 @@ std::pair<common::Byte, common::Bytes> MemoryManager::ReadInstruction(const comm
 
 void MemoryManager::WriteInstruction(const common::Byte code, const common::Bytes argument,
                                      const common::DoubleByte address) {
-    if (instructions_.size() < address + 1) {
-        instructions_.resize(address + 1);
-        arguments_.resize(address + 1);
+    if (address >= common::CODE_MEMORY_SIZE) {
+        throw std::invalid_argument(std::format("Address {} exceeds available memory.", address));
+    }
+
+    if (instructions_.size() <= address) {
+        instructions_.resize(address);
+        arguments_.resize(address);
     }
 
     instructions_[address] = code;
@@ -62,40 +66,36 @@ void MemoryManager::WriteInstruction(const common::Byte code, const common::Byte
     arguments_.push_back(argument);
 }
 
-common::Bytes MemoryManager::ReadData(const common::DoubleByte address) {
-    const common::Byte page_number = address / common::PAGE_SIZE;
-    const common::Byte page_offset = address % common::PAGE_SIZE;
+void MemoryManager::WriteArgument(const common::Bytes argument, const common::DoubleByte address) {
+    if (address >= common::CODE_MEMORY_SIZE) {
+        throw std::invalid_argument(std::format("Address {} exceeds available memory.", address));
+    }
 
-    if (!data_.contains(page_number)) {
+    if (instructions_.size() <= address) {
+        instructions_.resize(address);
+        arguments_.resize(address);
+    }
+
+    arguments_[address] = argument;
+}
+
+common::Bytes MemoryManager::ReadArgument(common::DoubleByte address) {
+    if (address >= common::CODE_MEMORY_SIZE) {
+        throw std::invalid_argument(std::format("Address {} exceeds available memory.", address));
+    }
+
+    if (instructions_.size() < address || instructions_.empty()) {
         return {};
     }
 
-    return data_[page_number][page_offset];
-}
-
-void MemoryManager::WriteData(const common::DoubleByte address, const common::Bytes value) {
-    const common::Byte page_number = address / common::PAGE_SIZE;
-    const common::Byte page_offset = address % common::PAGE_SIZE;
-
-    if (!data_.contains(page_number)) {
-        constexpr common::Page page{};
-        data_[page_number] = page;
-    }
-
-    data_[page_number][page_offset] = value;
+    return arguments_[address];
 }
 
 void MemoryManager::Reset() {
-    data_.clear();
     instructions_.clear();
     arguments_.clear();
 }
 
-void MemoryManager::ResetData() {
-    data_.clear();
-}
-
-void MemoryManager::ResetInstructions() {
-    instructions_.clear();
-    arguments_.clear();
+size_t MemoryManager::Size() const {
+    return instructions_.size();
 }

@@ -5,11 +5,13 @@
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
-    const QIcon icon(":/resources/icons/icon.ico");
-    app.setWindowIcon(icon);
+
+    app.setWindowIcon(QIcon(":/resources/icons/icon.svg"));
     app.setApplicationName("SANDM");
     app.setApplicationVersion(APP_VERSION_STRING);
     app.setOrganizationName("Organization");
+    QApplication::setFont(QFont ("Droid Sans Mono"));
+
     /*
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();

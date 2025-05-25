@@ -15,7 +15,7 @@ public:
      * @brief Вызывается при изменении указателя инструкций.
      * @param instruction_pointer Новое значение указателя инструкций.
      */
-    virtual void OnRegisterIpChanged(common::DoubleByte& instruction_pointer) = 0;
+    virtual void OnRegisterIpChanged(const common::DoubleByte& instruction_pointer) = 0;
     /**
      * @brief Вызывается при изменении значения аккумулятора.
      * @param accumulator Новое значение аккумулятора.
@@ -27,15 +27,10 @@ public:
      */
     virtual void OnRegisterAuxChanged(const common::Bytes& auxiliary) = 0;
     /**
-     * @brief Вызывается при изменении индекса таблицы страниц.
-     * @param page_table_index Новое значение индекса таблицы страниц.
-     */
-    virtual void OnRegisterPtiChanged(common::Byte& page_table_index) = 0;
-    /**
      * @brief Вызывается при изменении памяти.
      * @param address Адрес измененной ячейки памяти.
      */
-    virtual void OnMemoryChanged(common::DoubleByte& address) = 0;
+    virtual void OnMemoryChanged(const common::DoubleByte& address) = 0;
     /**
      * @brief Вызывается при изменении статуса процессора.
      * @param is_running Флаг, указывающий, запущен ли процессор.

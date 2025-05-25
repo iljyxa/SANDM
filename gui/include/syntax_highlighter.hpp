@@ -21,11 +21,12 @@ public:
         QTextCharFormat keyword_format;
         keyword_format.setForeground(StyleColors::CodeEditorKeyword());
         const QString keyword_patterns[] = {
-            QStringLiteral("\\bNOP\\b"), QStringLiteral("\\bADD\\b"), QStringLiteral("\\bSUB\\b"),
+            QStringLiteral("\\bNOPE\\b"), QStringLiteral("\\bADD\\b"), QStringLiteral("\\bSUB\\b"),
             QStringLiteral("\\bMUL\\b"), QStringLiteral("\\bDIV\\b"), QStringLiteral("\\bMOD\\b"),
-            QStringLiteral("\\bJMP\\b"), QStringLiteral("\\bJNZ\\b"), QStringLiteral("\\bJGZ\\b"),
-            QStringLiteral("\\bSET\\b"), QStringLiteral("\\bSAVE\\b"), QStringLiteral("\\bLOAD\\b"),
-            QStringLiteral("\\bREAD\\b"), QStringLiteral("\\bWRITE\\b"), QStringLiteral("\\bPAGE\\b")
+            QStringLiteral("\\bAND\\b"), QStringLiteral("\\bNOT\\b"), QStringLiteral("\\bLOAD\\b"),
+            QStringLiteral("\\bSTORE\\b"), QStringLiteral("\\bINPUT\\b"), QStringLiteral("\\bOUTPUT\\b"),
+            QStringLiteral("\\bJUMP\\b"), QStringLiteral("\\bSKIPLO\\b"), QStringLiteral("\\bSKIPGE\\b"),
+            QStringLiteral("\\bSKIPEQ\\b"), QStringLiteral("\\bJNS\\b")
         };
         for (const QString& pattern : keyword_patterns) {
             highlighting_rules_.append({QRegularExpression(pattern), keyword_format});
@@ -43,7 +44,7 @@ public:
         // Модификаторы аргумента
         QTextCharFormat argument_modificator_format;
         argument_modificator_format.setForeground(StyleColors::CodeEditorArgModifier());
-        highlighting_rules_.append({QRegularExpression("\\B&\\B"), argument_modificator_format});
+        highlighting_rules_.append({QRegularExpression("\\B=\\B"), argument_modificator_format});
 
         // Метки
         QTextCharFormat label_format;
@@ -60,7 +61,7 @@ public:
         // Комментарии
         QTextCharFormat comment_format;
         comment_format.setForeground(StyleColors::CodeEditorComment());
-        highlighting_rules_.append({QRegularExpression(";[^\n]*"), comment_format});
+        highlighting_rules_.append({QRegularExpression("//[^\n]*"), comment_format});
     }
 
 protected:

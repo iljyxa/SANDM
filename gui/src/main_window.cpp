@@ -38,17 +38,11 @@ MainWindow::MainWindow(QWidget* parent) :
     action_step_(new QAction(this)),
     is_bytecode_fresh_(false) {
 
-    const QFont font("Droid Sans Mono", 11);
-    this->setFont(font);
-
-    setWindowTitle("SANDM");
-    resize(1280, 1024);
-
     setCentralWidget(code_editor_);
 
     memory_table_view_->setModel(memory_table_model_);
     for (int column = 0; column < memory_table_model_->columnCount(); column++) {
-        memory_table_view_->setColumnWidth(column, 75);
+        memory_table_view_->setColumnWidth(column, 95);
     }
 
     // ReSharper disable once CppDFAMemoryLeak
@@ -82,8 +76,6 @@ MainWindow::MainWindow(QWidget* parent) :
             &VirtualMachineController::OnAuxiliaryEdited);
     connect(register_editor_, &RegisterEditor::InstructionPointerEdited, vm_controller_,
             &VirtualMachineController::OnInstructionPointerEdited);
-    connect(register_editor_, &RegisterEditor::PageTableIndexEdited, vm_controller_,
-            &VirtualMachineController::OnPageTableIndexEdited);
 
     connect(code_editor_, &CodeEditor::BreakpointAdded, vm_controller_, &VirtualMachineController::OnInsertBreakpoint);
     connect(code_editor_, &CodeEditor::BreakpointRemoved, vm_controller_,
@@ -94,7 +86,6 @@ MainWindow::MainWindow(QWidget* parent) :
 
     CreateMenus();
     CreateToolBar();
-    CreateSettingsMenu();
     ApplyTheme();
 }
 
@@ -113,6 +104,8 @@ void MainWindow::CreateMenus() {
     // Меню примеров
     examples_menu_ = menuBar()->addMenu("Примеры");
     LoadExamples();
+
+    CreateSettingsMenu();
 
     // Меню помощи
     QMenu* help_menu = menuBar()->addMenu("Помощь");
@@ -466,11 +459,10 @@ void MainWindow::OnStateVmChanged(const VmState state, const bool debugging) con
 void MainWindow::OnUpdateVm() const {
     emit memory_table_model_->layoutChanged();
 
-    const auto [accumulator, auxiliary, instruction_pointer, page_table_index] = vm_controller_->GetRegisters();
+    const auto [accumulator, auxiliary, instruction_pointer] = vm_controller_->GetRegisters();
 
     emit register_editor_->accumulator_edit->setValue(static_cast<int>(accumulator));
     emit register_editor_->auxiliary_edit->setValue(static_cast<int>(auxiliary));
-    emit register_editor_->page_table_index_edit->setValue(page_table_index);
     emit register_editor_->instruction_pointer_edit->setValue(instruction_pointer);
 }
 

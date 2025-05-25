@@ -2,21 +2,15 @@
 #include <algorithm>
 #include <cstdint>
 #include <format>
-#include <iterator>
 #include <numeric>
 #include <regex>
 #include <sstream>
 
 Assembler::Assembler() :
     line_number_(0) {
-    opcode_map_ = {
-        {"NOP", common::OpCode::NOP}, {"ADD", common::OpCode::ADD}, {"SUB", common::OpCode::SUB},
-        {"MUL", common::OpCode::MUL}, {"DIV", common::OpCode::DIV}, {"MOD", common::OpCode::MOD},
-        {"JMP", common::OpCode::JMP}, {"JNZ", common::OpCode::JNZ}, {"JGZ", common::OpCode::JGZ},
-        {"CPSG", common::OpCode::CPS}, {"CPSE", common::OpCode::CPS}, {"SET", common::OpCode::SET},
-        {"SAVE", common::OpCode::SAVE}, {"LOAD", common::OpCode::LOAD}, {"READ", common::OpCode::READ},
-        {"WRITE", common::OpCode::WRITE}, {"PAGE", common::OpCode::PAGE}
-    };
+    for (const auto& [opcode, properties] : common::OPCODE_PROPERTIES) {
+        opcode_map_.insert({properties.name, opcode});
+    }
 
     type_modifier_map_ = {
         {"C", common::TypeModifier::C},
@@ -26,7 +20,7 @@ Assembler::Assembler() :
     };
 
     arg_modifier_map_ = {
-        {"&", common::ArgModifier::REF}, {">", common::ArgModifier::GZ}, {"=", common::ArgModifier::EQ}
+        {"&", common::ArgModifier::REF}
     };
 }
 
@@ -167,13 +161,13 @@ Instruction Assembler::GetInstruction(const std::string& line) {
             }
         } else {
             stream.seekg(-static_cast<int>(token.size()),
-                         std::ios_base::cur); // Возвращаем токен обратно в поток
+                         std::ios_base::cur);
         }
     }
 
     if (stream >> token) {
-        if (opcode_map_.contains(ToUpper(token))) {
-            result.opcode = opcode_map_[ToUpper(token)];
+        if (auto token_upper = ToUpper(token); opcode_map_.contains(token_upper)) {
+            result.opcode = opcode_map_[token_upper];
         } else if (!result.label_name) {
             // При указании метки доступен синтаксис без команды, поэтому может не
             // быть команды. Однако если метка не указана и указана неизвестная
@@ -189,62 +183,30 @@ Instruction Assembler::GetInstruction(const std::string& line) {
         if (type_modifier_map_.contains(ToUpper(token))) {
             result.type_modifier = type_modifier_map_[ToUpper(token)];
         } else {
-            // TODO: Необходимо определять тип, если он явно не задан и указано число
             // ReSharper disable once CppTooWideScopeInitStatement
             const auto& properties = common::OPCODE_PROPERTIES.at(result.opcode);
             if (properties.allowed_type_modifiers.contains(common::TypeModifier::SW)) {
                 result.type_modifier = common::TypeModifier::SW;
-            } else if (properties.allowed_type_modifiers.contains(common::TypeModifier::C)) {
-                result.type_modifier = common::TypeModifier::C;
             } else {
-                result.type_modifier = common::TypeModifier::C;
+                result.type_modifier = common::TypeModifier::W;
             }
-
-            // Если токен не является модификатором аргумента, это может быть
-            // модификатор типа или аргумент
-            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur); // Возвращаем токен обратно в поток
+            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
         }
     }
 
     // Чтение модификатора аргумента
     if (stream >> token) {
-        if (arg_modifier_map_.contains(ToUpper(token))) {
+        if (auto token_upper = ToUpper(token); arg_modifier_map_.contains(token_upper)) {
             if (!result.label_name) {
-                result.argument_modifier = arg_modifier_map_[ToUpper(token)];
+                result.argument_modifier = arg_modifier_map_[token_upper];
             } else {
                 throw Exception<std::runtime_error>(
-                    std::format("Arg modifier nedostupen dlya metok: {}", token));
+                    std::format("Argument modifier {} cannot be used with labels: {}", token, *result.label_name));
             }
         } else {
-            // Если токен не является модификатором аргумента, это может быть
-            // модификатор типа или аргумент
-            stream.seekg(-static_cast<int>(token.size()),
-                         std::ios_base::cur); // Возвращаем токен обратно в поток
+            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
         }
     }
-
-    /*
-    // Проверка допустимости модификаторов для опкода
-    const OpCodeProperties &props = opcodeProperties[result.opcode];
-    if (props.allowedTypeModifiers.find(result.typeModifier) ==
-    props.allowedTypeModifiers.end()) { std::string allowedModifiers = "Allowed
-    type modifiers for " + std::to_string(static_cast<int>(result.opcode)) +
-                                       ": ";
-        for (const auto &mod: props.allowedTypeModifiers) {
-            allowedModifiers += std::to_string(static_cast<int>(mod)) + " ";
-        }
-        throw std::runtime_error(std::format("Line {}: Invalid type modifier for
-    instruction. {}", lineNumber, allowedModifiers));
-    }
-    if (props.allowedArgModifiers.find(result.argModifier) ==
-    props.allowedArgModifiers.end()) { std::string allowedModifiers = "Allowed
-    argument modifiers for " + std::to_string( static_cast<int>(result.opcode)) +
-    ": "; for (const auto &mod: props.allowedArgModifiers) { allowedModifiers +=
-    std::to_string(static_cast<int>(mod)) + " ";
-        }
-        throw std::runtime_error(std::format("Line {}: Invalid argument modifier
-    for instruction. {}", lineNumber, allowedModifiers));
-    }*/
 
     // Чтение аргумента
     if (stream >> token) {
@@ -252,7 +214,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
             result.using_label_name = token;
         } else {
             try {
-                result.argument = ParseNumber(token);
+                result.argument = ParseNumber(token, result.type_modifier);
             } catch ([[maybe_unused]] const std::exception& e) {
                 throw Exception<std::invalid_argument>(
                     std::format("Invalid number format: {}", token));
@@ -261,17 +223,17 @@ Instruction Assembler::GetInstruction(const std::string& line) {
     }
 
     if (stream >> token) {
-        throw Exception<std::invalid_argument>("Invalid command format");
+        throw Exception<std::invalid_argument>(std::format("Invalid command format: {}", line));
     }
 
     return result;
 }
 
-bool Assembler::IsArgumentModifier(const std::string& token) const {
+bool Assembler::IsArgumentModifier(std::string& token) const {
     return arg_modifier_map_.contains(ToUpper(token));
 }
 
-bool Assembler::IsTypeModifier(const std::string& token) const {
+bool Assembler::IsTypeModifier(std::string& token) const {
     return type_modifier_map_.contains(ToUpper(token));
 }
 
@@ -279,30 +241,30 @@ void Assembler::ValidateStringNumber(const std::string& str) {
     if (str.size() >= 2 && str.substr(0, 2) == "0b") {
         if (const std::regex binary_regex("^0b[01]+$"); !std::regex_match(str, binary_regex)) {
             throw Exception<std::invalid_argument>(
-                "Invalid binary string: only '0' and '1' are allowed after '0b'");
+                std::format("Invalid binary string {}: only '0' and '1' are allowed after '0b'", str));
         }
     }
     // Проверка на шестнадцатеричную строку (начинается с "0x")
     else if (str.size() >= 2 && str.substr(0, 2) == "0x") {
         if (const std::regex hex_regex("^0x[0-9A-Fa-f]+$"); !std::regex_match(str, hex_regex)) {
             throw Exception<std::invalid_argument>(
-                "Invalid hex string: only digits (0-9, A-F) are allowed after '0x'");
+                std::format("Invalid hex string {}: only digits (0-9, A-F) are allowed after '0x'", str));
         }
     }
     // Проверка на число с плавающей точкой (содержит ".")
     else if (str.find('.') != std::string::npos) {
         if (const std::regex float_regex("^-?[0-9]+\\.[0-9]+$"); !std::regex_match(str, float_regex)) {
             throw Exception<std::invalid_argument>(
-                "Invalid float string: only digits (0-9), one '.', and optional '-' "
-                "at the start are allowed");
+                std::format("Invalid float string {}: only digits (0-9), one '.', and optional '-' "
+                    "at the start are allowed", str));
         }
     }
     // Проверка на целое число (без ".")
     else {
         if (const std::regex int_regex("^-?[0-9]+$"); !std::regex_match(str, int_regex)) {
             throw Exception<std::invalid_argument>(
-                "Invalid integer string: only digits (0-9) and optional '-' at the "
-                "start are allowed");
+                std::format("Invalid integer string {}: only digits (0-9) and optional '-' at the "
+                "start are allowed", str));
         }
     }
 }
@@ -369,7 +331,7 @@ bool Assembler::IsNumberValidForType(const common::Bytes bytes, const common::Ty
     return false;
 }
 
-common::Bytes Assembler::ParseNumber(const std::string& str) {
+common::Bytes Assembler::ParseNumber(const std::string& str, const common::TypeModifier& type_modifier) {
     ValidateStringNumber(str);
 
     common::Bytes result;
@@ -378,15 +340,12 @@ common::Bytes Assembler::ParseNumber(const std::string& str) {
         std::string binary_string = str.substr(2); // Убираем "0b"
         if (binary_string.size() > common::ARGUMENT_SIZE * 8) {
             throw Exception<std::invalid_argument>(
-                std::format("Binary string {} is too long", str));
+                std::format("Binary string {} is too long (max {} bits)", str, std::to_string(common::ARGUMENT_SIZE * 8)));
         }
 
-        // Дополняем строку нулями слева до 32 бит (4 байта)
-        binary_string.insert(binary_string.begin(),
-                             common::ARGUMENT_SIZE * 8 - binary_string.size(), '0');
-
+        // Дополняем строку нулями слева
+        binary_string.insert(binary_string.begin(), common::ARGUMENT_SIZE * 8 - binary_string.size(), '0');
         const std::bitset<common::ARGUMENT_SIZE * 8> bits(binary_string);
-
         const uint32_t num = bits.to_ulong();
 
         for (size_t i = 0; i < common::ARGUMENT_SIZE; ++i) {
@@ -397,10 +356,10 @@ common::Bytes Assembler::ParseNumber(const std::string& str) {
         std::string hex_string = str.substr(2); // Убираем "0x"
         if (hex_string.size() > common::ARGUMENT_SIZE * 2) {
             throw Exception<std::invalid_argument>(
-                std::format("Hex string {} is too long", str));
+                std::format("Hex string {} is too long (max {} nibbles)", str, std::to_string(common::ARGUMENT_SIZE * 2)));
         }
 
-        // Дополняем строку нулями слева до 8 символов (4 байта)
+        // Дополняем строку нулями слева
         hex_string.insert(hex_string.begin(), common::ARGUMENT_SIZE * 2 - hex_string.size(),
                           '0');
 
@@ -413,11 +372,11 @@ common::Bytes Assembler::ParseNumber(const std::string& str) {
         for (size_t i = 0; i < common::ARGUMENT_SIZE; ++i) {
             result[i] = static_cast<uint8_t>(num >> (8 * i) & 0xFF);
         }
-    } else if (str.find('.') != std::string::npos) {
-        // Число с плавающей точкой
+    } else if (type_modifier == common::TypeModifier::R) {
+        // Число с плавающей запятой
         result = std::stof(str);
     } else {
-        // Целое число
+        // Целое число. В данном случае не имеет значения, какой тип аргумента.
         result = std::stoul(str);
     }
 
@@ -425,14 +384,14 @@ common::Bytes Assembler::ParseNumber(const std::string& str) {
 }
 
 std::string Assembler::RemoveComment(const std::string& line) {
-    if (const size_t pos = line.find(';'); pos != std::string::npos) {
+    if (const size_t pos = line.find("//"); pos != std::string::npos) {
         return line.substr(0, pos);
     }
 
     return line;
 }
 
-std::string Assembler::ToUpper(std::string str) {
+std::string Assembler::ToUpper(std::string& str) {
     std::ranges::transform(str, str.begin(), toupper);
     return str;
 }
