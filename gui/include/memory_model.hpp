@@ -20,7 +20,7 @@ public:
     }
 
     [[nodiscard]] common::Byte Address(const int row, const int column) const {
-        return row * rowCount() + column;
+        return row * columnCount() + column;
     }
 
     [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override { // NOLINT(*-default-arguments)
@@ -30,7 +30,7 @@ public:
 
     [[nodiscard]] int columnCount(const QModelIndex& parent = QModelIndex()) const override { // NOLINT(*-default-arguments)
         Q_UNUSED(parent);
-        return 16;
+        return 8;
     }
 
     [[nodiscard]] QVariant data(const QModelIndex& index, const int role) const override {

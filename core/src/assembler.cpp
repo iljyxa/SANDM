@@ -299,7 +299,7 @@ bool Assembler::IsValidLabelName(const std::string& name) {
         return false;
     }
 
-    if (std::ranges::all_of(
+    if (std::ranges::any_of(
         name, [](const char c) {
             return c != '_' && !std::isalnum(c);
         })) {

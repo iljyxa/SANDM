@@ -120,7 +120,7 @@ namespace common {
             OpCode::STORE,
             {
                 {TypeModifier::W},
-                {ArgModifier::NONE},
+                {ArgModifier::NONE, ArgModifier::REF},
                 true,
                 true,
                 "STORE"

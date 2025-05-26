@@ -238,10 +238,11 @@ const common::DoubleByte& Processor::GetInstructionPointer() const {
 
 void Processor::SetInstructionPointer(const common::DoubleByte value) {
     if (value >= memory_.Size()) {
-        registers_.instruction_pointer = 0;
-    } else {
-        registers_.instruction_pointer = value;
+        SetStatus(false);
+        return;
     }
+
+    registers_.instruction_pointer = value;
 
     if (observer_) {
         observer_->OnRegisterIpChanged(registers_.instruction_pointer);
@@ -268,6 +269,7 @@ void Processor::ExecuteInstruction() {
     const bool argument_is_address = code & 0b00000001;
 
     SetAuxiliary(argument_is_address ? memory_.ReadArgument(static_cast<common::Word>(argument)) : argument);
+
     try {
         instructions_handlers_[handler]();
     } catch ([[maybe_unused]] std::bad_function_call &e) {

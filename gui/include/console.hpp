@@ -4,6 +4,8 @@
 #include <QKeyEvent>
 #include <QTextCursor>
 #include <QTextEdit>
+#include <QMenu>
+#include <QContextMenuEvent>
 
 class Console final : public QTextEdit {
     Q_OBJECT
@@ -12,6 +14,8 @@ public:
     explicit Console(QWidget* parent = nullptr) :
         QTextEdit(parent), input_start_pos_(-1) {
         setReadOnly(true);
+        ensureCursorVisible();
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     }
 
     Console(const Console&) = delete;
@@ -21,6 +25,7 @@ public:
         input_start_pos_ = textCursor().position();
         setReadOnly(false);
         moveCursor(QTextCursor::End);
+        ensureCursorVisible();
 
         QEventLoop loop;
         connect(this, &Console::InputFinished, &loop, &QEventLoop::quit);
@@ -28,6 +33,18 @@ public:
 
         setReadOnly(true);
         return entered_text_;
+    }
+
+    // Убрано override, так как insertPlainText не виртуальный в QTextEdit
+    void insertPlainText(const QString &text) {
+        QTextEdit::insertPlainText(text);
+        ensureCursorVisible();
+    }
+
+    void append(const QString &text) {
+        moveCursor(QTextCursor::End);
+        insertPlainText(text);
+        ensureCursorVisible();
     }
 
 signals:
@@ -60,18 +77,26 @@ protected:
         if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
             cursor.setPosition(input_start_pos_);
             cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
-            entered_text_ = cursor.selectedText().trimmed(); // Получаем введенный текст
+            entered_text_ = cursor.selectedText().trimmed();
 
-            // Испускаем сигнал о завершении ввода
             emit InputFinished(entered_text_);
 
-            // Добавляем перенос строки
-            moveCursor(QTextCursor::End); // Перемещаем курсор в конец
-            insertPlainText("\n"); // Вставляем новую строку
+            moveCursor(QTextCursor::End);
+            QTextEdit::insertPlainText("\n");
+            ensureCursorVisible();
             return;
         }
 
         QTextEdit::keyPressEvent(event);
+    }
+
+    void contextMenuEvent(QContextMenuEvent *event) override {
+        QMenu *menu = createStandardContextMenu();
+        menu->addSeparator();
+        QAction *clearAction = menu->addAction("Clear");
+        connect(clearAction, &QAction::triggered, this, &Console::clear);
+        menu->exec(event->globalPos());
+        delete menu;
     }
 
 private:
