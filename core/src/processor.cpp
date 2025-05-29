@@ -1,12 +1,14 @@
 #include "../../core/include/processor.hpp"
 
-#include <bitset>
-
 Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, ProcessorIo* io) :
     memory_(memory),
     observer_(observer),
     io_(io),
     is_running_(false) {
+
+    argument_modifiers_[static_cast<uint8_t>(common::ArgModifier::NONE)] = common::ArgModifier::NONE;
+    argument_modifiers_[static_cast<uint8_t>(common::ArgModifier::REF)] = common::ArgModifier::REF;
+    argument_modifiers_[static_cast<uint8_t>(common::ArgModifier::REF_REF)] = common::ArgModifier::REF_REF;
 
     // nope
     instructions_handlers_[InstructionByte(common::OpCode::NOPE, common::TypeModifier::C)] = [this] {
@@ -190,6 +192,11 @@ void Processor::Run() {
     SetStatus(true);
 
     while (is_running_) {
+        if (is_waiting_input_) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+
         ExecuteInstruction();
     }
 }
@@ -201,6 +208,7 @@ void Processor::Step() {
 }
 
 void Processor::Stop() {
+    is_waiting_input_ = false;
     SetStatus(false);
 }
 
@@ -237,15 +245,14 @@ const common::DoubleByte& Processor::GetInstructionPointer() const {
 }
 
 void Processor::SetInstructionPointer(const common::DoubleByte value) {
-    if (value >= memory_.Size()) {
-        SetStatus(false);
-        return;
-    }
-
     registers_.instruction_pointer = value;
 
     if (observer_) {
         observer_->OnRegisterIpChanged(registers_.instruction_pointer);
+    }
+
+    if (value >= memory_.Size()) {
+        SetStatus(false);
     }
 }
 
@@ -254,7 +261,6 @@ const bool& Processor::IsRunning() const {
 }
 
 void Processor::ExecuteInstruction() {
-
     common::Byte code;
     common::Bytes argument;
 
@@ -265,10 +271,16 @@ void Processor::ExecuteInstruction() {
         return;
     }
 
-    const common::Byte handler = code & 0b11111110;
-    const bool argument_is_address = code & 0b00000001;
+    const common::Byte handler = code & 0b11111100;
+    const common::ArgModifier arg_modifier = argument_modifiers_[code & 0b00000011];
 
-    SetAuxiliary(argument_is_address ? memory_.ReadArgument(static_cast<common::Word>(argument)) : argument);
+    if (arg_modifier == common::ArgModifier::REF) {
+        SetAuxiliary(memory_.ReadArgument(static_cast<common::Word>(argument)));
+    } else if (arg_modifier == common::ArgModifier::REF_REF) {
+        SetAuxiliary(memory_.ReadArgument(static_cast<common::Word>(memory_.ReadArgument(static_cast<common::Word>(argument)))));
+    } else {
+        SetAuxiliary(argument);
+    }
 
     try {
         instructions_handlers_[handler]();
@@ -361,7 +373,7 @@ void Processor::Mod() {
  */
 
 void Processor::Load() {
-    SetAccumulator(registers_.auxiliary);
+    SetAccumulator(static_cast<common::Word>(registers_.auxiliary));
     NextInstruction();
 }
 
@@ -383,13 +395,15 @@ void Processor::Store() {
 
 template <typename T>
 void Processor::Input() {
-    common::Type type = TypeIo<T>();
-
     if (io_) {
-        io_->Input(registers_.accumulator, type);
-    }
+        is_waiting_input_ = true;
 
-    NextInstruction();
+        io_->InputAsync(TypeIo<T>(), [this](const common::Bytes bytes) {
+            is_waiting_input_ = false;
+            registers_.accumulator = bytes;
+            NextInstruction();
+        });
+    }
 }
 
 template <typename T>
@@ -439,10 +453,11 @@ void Processor::SkipEqual() {
 }
 
 void Processor::JumpAndStore() {
-    memory_.WriteArgument(common::Bytes(registers_.instruction_pointer + 1), static_cast<common::Word>(registers_.auxiliary));
+    const auto address = static_cast<common::Word>(registers_.auxiliary);
+    memory_.WriteArgument(common::Bytes(registers_.instruction_pointer + 1), address);
     if (observer_) {
-        observer_->OnMemoryChanged(static_cast<common::Word>(registers_.auxiliary));
+        observer_->OnMemoryChanged(address);
     }
-    SetInstructionPointer(static_cast<common::Word>(registers_.auxiliary) + 1);
+    SetInstructionPointer(address + 1);
 }
 

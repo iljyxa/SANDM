@@ -1,20 +1,17 @@
+#include <QActionGroup>
 #include <QDesktopServices>
+#include <QDirIterator>
 #include <QFileDialog>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QProperty>
 #include <QPushButton>
+#include <QResource>
 #include <QSplitter>
 #include <QStatusBar>
 #include <QTextBrowser>
 #include <QToolBar>
 #include <QVBoxLayout>
-#include <QApplication>
-#include <QDirIterator>
-#include <QResource>
-#include <QStyleHints>
-#include <QStyleFactory>
-#include <QActionGroup>
 
 #include "../../gui/include/main_window.hpp"
 #include "../../gui/include/style_colors.hpp"
@@ -61,14 +58,13 @@ MainWindow::MainWindow(QWidget* parent) :
 
     setStatusBar(status_bar_);
 
-    connect(memory_table_view_, &MemoryView::CellHovered, this, &MainWindow::UpdateStatusBar);
+    connect(memory_table_view_, &MemoryView::CellHovered, this, &MainWindow::UpdateStatusBar_TableCell);
 
     connect(vm_controller_, &VirtualMachineController::StateChanged, this, &MainWindow::OnStateVmChanged);
     connect(vm_controller_, &VirtualMachineController::Update, this, &MainWindow::OnUpdateVm);
+    connect(vm_controller_, &VirtualMachineController::Reseted, this, &MainWindow::OnResetVm);
     connect(vm_controller_, &VirtualMachineController::ErrorOccurred, this, &MainWindow::OnErrorOccurred);
     connect(vm_controller_, &VirtualMachineController::Reseted, this, &MainWindow::OnCodeChanged);
-
-    //connect(assembler_controller_, &AssemblerController::errorOccurred, this, &MainWindow::onErrorOccurred);
 
     connect(register_editor_, &RegisterEditor::AccumulatorEdited, vm_controller_,
             &VirtualMachineController::OnAccumulatorEdited);
@@ -84,22 +80,32 @@ MainWindow::MainWindow(QWidget* parent) :
 
     connect(this, &MainWindow::ThemeApplied, code_editor_, &CodeEditor::OnApplyTheme);
 
-    CreateMenus();
     CreateToolBar();
+    CreateMenus();
     ApplyTheme();
 }
 
 void MainWindow::CreateMenus() {
     QMenu* file_menu = menuBar()->addMenu("Файл");
-    const QAction* open_action = file_menu->addAction("Открыть");
-    const QAction* save_action = file_menu->addAction("Сохранить");
-    const QAction* save_as_action = file_menu->addAction("Сохранить как ...");
-    const QAction* exit_action = file_menu->addAction("Выход");
+    const QAction* open_action = file_menu->addAction("Открыть", QKeySequence(Qt::CTRL | Qt::Key_O));
+    const QAction* save_action = file_menu->addAction("Сохранить", QKeySequence(Qt::CTRL | Qt::Key_S));
+    const QAction* save_as_action = file_menu->addAction("Сохранить как ...", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
+    const QAction* exit_action = file_menu->addAction("Выход", QKeySequence(Qt::CTRL | Qt::Key_Q));
 
     connect(open_action, &QAction::triggered, this, &MainWindow::OnOpenFile);
     connect(save_action, &QAction::triggered, this, &MainWindow::OnSaveFile);
     connect(save_as_action, &QAction::triggered, this, &MainWindow::OnSaveAsFile);
     connect(exit_action, &QAction::triggered, this, &QMainWindow::close);
+
+    QMenu* emulator_menu = menuBar()->addMenu("Эмулятор");
+    emulator_menu->addAction(action_start_);
+    emulator_menu->addAction(action_debug_);
+    emulator_menu->addAction(action_stop_);
+
+    // Добавляем новую команду "Сбросить"
+    const auto action_reset = new QAction("Сбросить", this);
+    connect(action_reset, &QAction::triggered, vm_controller_, &VirtualMachineController::OnReset);
+    emulator_menu->addAction(action_reset);
 
     // Меню примеров
     examples_menu_ = menuBar()->addMenu("Примеры");
@@ -109,7 +115,7 @@ void MainWindow::CreateMenus() {
 
     // Меню помощи
     QMenu* help_menu = menuBar()->addMenu("Помощь");
-    const QAction* help_action = help_menu->addAction("Справка");
+    const QAction* help_action = help_menu->addAction("Справка", QKeySequence(Qt::Key_F1));
     const QAction* about_action = help_menu->addAction("О программе");
 
     connect(help_action, &QAction::triggered, this, &MainWindow::ShowHelp);
@@ -119,9 +125,8 @@ void MainWindow::CreateMenus() {
 void MainWindow::LoadExamples() {
     examples_menu_->clear();
 
-    // Ищем все ресурсы, начинающиеся с :/docs/examples/
     const QString resource_prefix = ":/docs/examples/";
-    QResource::registerResource(qApp->applicationDirPath() + "/resources.rcc");
+    //QResource::registerResource(qApp->applicationDirPath() + "/resources.rcc");
 
     QStringList resource_files;
     QDirIterator it(resource_prefix, QDirIterator::Subdirectories);
@@ -132,7 +137,6 @@ void MainWindow::LoadExamples() {
         }
     }
 
-    // Сортируем файлы по имени
     resource_files.sort();
 
     for (const QString& resourcePath : resource_files) {
@@ -259,59 +263,51 @@ void MainWindow::OnSaveAsFile() {
 }
 
 void MainWindow::ShowHelp() {
-    // Создаем диалоговое окно
     // ReSharper disable once CppDFAMemoryLeak
-    auto helpDialog = new QDialog(this);
-    helpDialog->setWindowTitle("Справка - README");
-    helpDialog->setMinimumSize(800, 600);
+    const auto help_dialog = new QDialog(this);
+    help_dialog->setWindowTitle("Справка");
+    help_dialog->setMinimumSize(1024, 768);
 
-    // Создаем текстовый браузер с поддержкой Markdown
     // ReSharper disable once CppDFAMemoryLeak
-    auto* text_browser = new QTextBrowser(helpDialog);
+    auto* text_browser = new QTextBrowser(help_dialog);
     text_browser->setOpenExternalLinks(true);
     text_browser->setOpenLinks(false);
+
     connect(text_browser, &QTextBrowser::anchorClicked, [](const QUrl& link) {
-        QDesktopServices::openUrl(link); // Открываем внешние ссылки в браузере
+        QDesktopServices::openUrl(link);
     });
 
-    QString markdown_content;
-    bool file_found = false;
-
-    QFile file(":/docs/README.md");
+    QString content;
+    //QFile file(":/docs/README.html");
+    QFile file(":/README.md");
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QTextStream in(&file);
-        markdown_content = in.readAll();
+        content = file.readAll();
         file.close();
-        file_found = true;
+    } else {
+        content = "Файл справки не найден";
     }
 
-    if (!file_found) {
-        markdown_content = "Файл README.md не найден";
-    }
+    //text_browser->setHtml(content);
+    text_browser->setMarkdown(content);
 
-    // Устанавливаем Markdown-контент
-    text_browser->setMarkdown(markdown_content);
-
-    // Добавляем кнопки
     // ReSharper disable once CppDFAMemoryLeak
-    const auto close_button = new QPushButton("Закрыть", helpDialog);
-    connect(close_button, &QPushButton::clicked, helpDialog, &QDialog::accept);
+    const auto close_button = new QPushButton("Закрыть", help_dialog);
+    connect(close_button, &QPushButton::clicked, help_dialog, &QDialog::accept);
 
-    // Настройка layout
     // ReSharper disable once CppDFAMemoryLeak
-    auto* main_layout = new QVBoxLayout(helpDialog);
+    auto* main_layout = new QVBoxLayout(help_dialog);
     main_layout->addWidget(text_browser);
 
     // ReSharper disable once CppDFAMemoryLeak
-    auto* button_layout = new QHBoxLayout();
+    auto* button_layout = new QHBoxLayout(help_dialog);
     button_layout->addStretch();
     button_layout->addWidget(close_button);
     button_layout->addStretch();
 
     main_layout->addLayout(button_layout);
 
-    helpDialog->exec();
-    helpDialog->deleteLater();
+    help_dialog->exec();
+    help_dialog->deleteLater();
 }
 
 void MainWindow::ShowAbout() {
@@ -357,6 +353,12 @@ void MainWindow::CreateToolBar() {
     connect(action_stop_, &QAction::triggered, vm_controller_, &VirtualMachineController::OnStop);
     connect(action_step_, &QAction::triggered, this, &MainWindow::OnStep);
 
+    action_start_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
+    action_debug_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_F5));
+    action_pause_continue_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
+    action_stop_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Shift | Qt::Key_F5));
+    action_step_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_F7));
+
     emit OnStateVmChanged(STOPPED, false);
 }
 
@@ -371,18 +373,32 @@ void MainWindow::SetToolbarActions(const VmState state, bool debugging = false) 
     action_step_->setVisible(state != RUNNING);
 }
 
-void MainWindow::UpdateStatusBar(const int row, const int column, const common::Word value) const {
-    const common::DoubleByte address = memory_table_model_->Address(row, column);
+void MainWindow::UpdateStatusBar_TableCell(const int row, const int column, const common::Word value) const {
+    UpdateStatusBar(memory_table_model_->Address(row, column), value);
+}
 
+void MainWindow::UpdateStatusBar(const int address, const common::Word value) const {
     common::Bytes bytes(value);
 
-    const QString status_text = QString(
-                                    "Physical address: 0x%1 | Decimal: %2 | Signed decimal: %3 | Float: %4 | Binary: %5")
-                                .arg(address, 4, 16, QChar('0'))
-                                .arg(static_cast<common::Word>(bytes))
-                                .arg(static_cast<common::SignedWord>(bytes))
-                                .arg(static_cast<common::Real>(bytes))
-                                .arg(QString::fromStdString(bytes.ToBinString()));
+    QString status_text;
+
+    if (address < 0) {
+        status_text = QString(
+                          "Decimal: %2 | Signed decimal: %3 | Float: %4 | Binary: %5")
+                      .arg(static_cast<common::Word>(bytes))
+                      .arg(static_cast<common::SignedWord>(bytes))
+                      .arg(static_cast<common::Real>(bytes))
+                      .arg(QString::fromStdString(bytes.ToBinString()));
+    } else {
+        status_text = QString(
+                          "Address: 0x%1 | Decimal: %2 | Signed decimal: %3 | Float: %4 | Binary: %5")
+                      .arg(address, 4, 16, QChar('0'))
+                      .arg(static_cast<common::Word>(bytes))
+                      .arg(static_cast<common::SignedWord>(bytes))
+                      .arg(static_cast<common::Real>(bytes))
+                      .arg(QString::fromStdString(bytes.ToBinString()));
+    }
+
 
     statusBar()->showMessage(status_text);
 }
@@ -392,9 +408,11 @@ void MainWindow::Output(common::Bytes& bytes, common::Type& type) {
     console_->insertPlainText(output_string);
 }
 
-void MainWindow::Input(common::Bytes& bytes, common::Type& type) {
-    const QString input_string = console_->GetInputString();
-    bytes = VirtualMachine::BytesFromString(input_string.toStdString(), type);
+void MainWindow::InputAsync(common::Type type, InputCallback callback) {
+    console_->GetInputStringAsync([this, type, callback](const QString& input) {
+        const common::Bytes bytes = VirtualMachine::BytesFromString(input.toStdString(), type);
+        callback(bytes);
+    });
 }
 
 bool MainWindow::UpdateByteCode() {
@@ -464,6 +482,10 @@ void MainWindow::OnUpdateVm() const {
     emit register_editor_->accumulator_edit->setValue(static_cast<int>(accumulator));
     emit register_editor_->auxiliary_edit->setValue(static_cast<int>(auxiliary));
     emit register_editor_->instruction_pointer_edit->setValue(instruction_pointer);
+}
+
+void MainWindow::OnResetVm() {
+    is_bytecode_fresh_ = false;
 }
 
 void MainWindow::OnErrorOccurred(const QString& error) const {

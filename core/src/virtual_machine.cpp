@@ -88,11 +88,10 @@ void VirtualMachine::Output(common::Bytes& bytes, common::Type& type) {
     std::cout << BytesToString(bytes, type) << std::endl;
 }
 
-void VirtualMachine::Input(common::Bytes& bytes, common::Type& type) {
+void VirtualMachine::InputAsync(const common::Type type, const InputCallback callback) {
     std::string input_string;
     std::cin >> input_string;
-
-    bytes = BytesFromString(input_string, type);
+    callback(BytesFromString(input_string, type));
 }
 
 void VirtualMachine::SetProcessorObserver(ProcessorObserver* observer) const {

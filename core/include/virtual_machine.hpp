@@ -44,7 +44,7 @@ public:
     void SetProcessorIo(ProcessorIo* processor_io) const;
 
     void Output(common::Bytes& bytes, common::Type& type) override;
-    void Input(common::Bytes& bytes, common::Type& type) override;
+    void InputAsync(common::Type type, InputCallback callback) override;
 
     static std::string BytesToString(const common::Bytes& bytes, const common::Type& type);
     static common::Bytes BytesFromString(const std::string& string, const common::Type& type);

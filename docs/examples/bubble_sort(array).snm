@@ -1,0 +1,128 @@
+array: 5
+5
+3
+-123
+4
+0
+
+Load array
+JnS bubble_sort
+Jump halt
+
+// Функция сортировки пузырьком по неубыванию
+// ACC - адрес начала массива
+// Первый адрес массива - количество элементов
+// Элементы массива - знаковые целые числа
+bubble_sort:
+	bs_ACC_original: 0 // Исходный адрес
+	bs_array_size: 0   // Размер массива
+	bs_array_begin: 0  // Адрес начала элементов массива
+	bs_array_end: 0    // Адрес последнего элемента массива
+	
+	Store bs_ACC_original
+	
+	// Получаем значение из начального адреса - это количество элементов
+	Load && bs_ACC_original
+	Store bs_array_size
+	
+	// Начальный адрес + 1 это адрес начала элементов
+	Load & bs_ACC_original
+	Add 1
+	Store bs_array_begin
+	
+	Add & bs_array_size
+	Sub 1
+	Store bs_array_end	
+	
+	bs_I: 0
+	Load & bs_array_begin
+	Store bs_I
+
+	bs_loop_I:
+		
+		Load & bs_I
+		SkipLo & bs_array_end        
+		Jump bs_end
+
+		bs_swapped: 0 // Признак, что была перестановка
+		Load 0
+		Store bs_swapped
+		
+		bs_J: 0
+		Load & bs_array_begin
+		Store bs_J
+
+		bs_array_end_J: 0 // Адрес последнего элемента для обработки вложенным циклом
+		Load & bs_array_end
+		Sub & bs_I
+		Add & bs_ACC_original
+		Add 1
+		Store bs_array_end_J	
+
+		bs_loop_J:
+			Load & bs_J
+			SkipLo & bs_array_end_J
+			Jump bs_loop_J_end
+			
+			// Адреса элементов
+			bs_array_elem_J: 0
+			bs_array_elem_J_plus_1: 0
+			// Значения элементов
+			bs_array_elem_J_value: 0
+			bs_array_elem_J_plus_1_value: 0
+			
+			// Запишем адреса элементов. В ACC сейчас адрес элемента J
+			Store bs_array_elem_J
+			Add 1
+			Store bs_array_elem_J_plus_1
+			
+			// Запишем значения элементов
+			Load && bs_array_elem_J
+			Store bs_array_elem_J_value
+			Load && bs_array_elem_J_plus_1
+			Store bs_array_elem_J_plus_1_value
+
+			// Сравниваем
+			// Если array[j + 1] < array[j]
+			SkipLo & bs_array_elem_J_value 
+			// Иначе переходим в конец цикла
+			Jump bs_end_swap
+			bs_swap:     
+				// Тогда меняем местами значения элементов
+				// array[j + 1] = array[j]
+				Load & bs_array_elem_J_value
+				Store & bs_array_elem_J_plus_1
+				// array[j] = array[j + 1]
+				Load & bs_array_elem_J_plus_1_value
+				Store & bs_array_elem_J
+			
+				Load 1
+				Store bs_swapped
+			bs_end_swap:
+			
+			// Инкремент J
+			Load & bs_J
+			Add 1
+			Store bs_J
+
+			Jump bs_loop_J
+
+		bs_loop_J_end: 	
+		
+		// Проверим, что после цикла J была хотя бы одна замена.
+		// Если нет, то массив отсортирован, завершаем
+		Load & bs_swapped
+		SkipEq 1
+		Jump bs_end		
+		
+		// Инкремент I
+		Load & bs_I
+		Add 1
+		Store bs_I
+		Jump bs_loop_I
+
+	bs_end:
+	Load & bs_ACC_original
+	Jump & bubble_sort
+
+halt:

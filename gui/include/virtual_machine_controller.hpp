@@ -46,7 +46,7 @@ public:
      * @brief Возвращает текущее состояние виртуальной машины.
      * @return Текущее состояние VmState.
      */
-    VmState GetState() const;
+    [[nodiscard]] VmState GetState() const;
     /**
      * @brief Возвращает номер текущей строки исполняемого кода.
      * @return Номер текущей строки кода.
@@ -135,11 +135,11 @@ signals:
      */
     void StateChanged(VmState state, bool debugging);
     /**
-     * @brief Сигнал для обновления интерфейса.
+     * @brief Сигнал необходимости обновления интерфейса.
      */
     void Update();
     /**
-     * @brief Сигнал о сбросе виртуальной машины.
+     * @brief Сигнал о сбросе состояния виртуальной машины.
      */
     void Reseted();
     /**

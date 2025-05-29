@@ -21,6 +21,8 @@ public:
     Console(const Console&) = delete;
     Console& operator=(const Console&) = delete;
 
+    using InputCallback = std::function<void(const QString&)>;
+
     QString GetInputString() {
         input_start_pos_ = textCursor().position();
         setReadOnly(false);
@@ -35,15 +37,18 @@ public:
         return entered_text_;
     }
 
-    // Убрано override, так как insertPlainText не виртуальный в QTextEdit
-    void insertPlainText(const QString &text) {
-        QTextEdit::insertPlainText(text);
-        ensureCursorVisible();
-    }
+    void GetInputStringAsync(const InputCallback& callback) {
+        if (is_waiting_input_) {
+            callback("");
+            return;
+        }
 
-    void append(const QString &text) {
+        current_callback_ = callback;
+        is_waiting_input_ = true;
+        input_start_pos_ = textCursor().position();
+
+        setReadOnly(false);
         moveCursor(QTextCursor::End);
-        insertPlainText(text);
         ensureCursorVisible();
     }
 
@@ -77,13 +82,18 @@ protected:
         if (event->key() == Qt::Key_Return || event->key() == Qt::Key_Enter) {
             cursor.setPosition(input_start_pos_);
             cursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
-            entered_text_ = cursor.selectedText().trimmed();
+            const QString entered_text = cursor.selectedText().trimmed();
 
-            emit InputFinished(entered_text_);
+            setReadOnly(true);
+            is_waiting_input_ = false;
+
+            if (current_callback_) {
+                current_callback_(entered_text);
+                current_callback_ = nullptr;
+            }
 
             moveCursor(QTextCursor::End);
-            QTextEdit::insertPlainText("\n");
-            ensureCursorVisible();
+            insertPlainText("\n");
             return;
         }
 
@@ -102,6 +112,8 @@ protected:
 private:
     int input_start_pos_;
     QString entered_text_;
+    InputCallback current_callback_;
+    bool is_waiting_input_ = false;
 };
 
 #endif

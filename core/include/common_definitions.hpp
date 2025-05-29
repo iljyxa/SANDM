@@ -8,7 +8,7 @@
 
 namespace common {
     enum class OpCode {
-        NOPE = 0, ADD, SUB, MUL, DIV, MOD, AND, NOT, LOAD, STORE, INPUT, OUTPUT, JUMP, JUMPNSTORE, SKIP_LOWER, SKIP_GREATER, SKIP_EQUAL
+        NOPE = 0, ADD, SUB, MUL, DIV, MOD, LOAD, STORE, INPUT, OUTPUT, JUMP, JUMPNSTORE, SKIP_LOWER, SKIP_GREATER, SKIP_EQUAL
     };
 
     enum class TypeModifier {
@@ -16,7 +16,7 @@ namespace common {
     };
 
     enum class ArgModifier {
-        NONE = 0, REF
+        NONE = 0, REF, REF_REF
     };
 
     enum Type {
@@ -50,7 +50,7 @@ namespace common {
             OpCode::NOPE,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::REF},
+                {ArgModifier::NONE},
                 false,
                 false,
                 "NOPE"
@@ -60,7 +60,7 @@ namespace common {
             OpCode::ADD,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "ADD"
@@ -70,7 +70,7 @@ namespace common {
             OpCode::SUB,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "SUB"
@@ -80,7 +80,7 @@ namespace common {
             OpCode::MUL,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "MUL"
@@ -90,7 +90,7 @@ namespace common {
             OpCode::DIV,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "DIV"
@@ -100,7 +100,7 @@ namespace common {
             OpCode::MOD,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "MOD"
@@ -110,7 +110,7 @@ namespace common {
             OpCode::LOAD,
             {
                 {TypeModifier::W},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "LOAD"
@@ -130,7 +130,7 @@ namespace common {
             OpCode::INPUT,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                { },
+                {ArgModifier::NONE},
                 false,
                 false,
                 "INPUT"
@@ -140,7 +140,7 @@ namespace common {
             OpCode::OUTPUT,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                { },
+                {ArgModifier::NONE},
                 false,
                 false,
                 "OUTPUT"
@@ -150,7 +150,7 @@ namespace common {
             OpCode::JUMP,
             {
                 {TypeModifier::W},
-                {ArgModifier::NONE},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "JUMP"
@@ -160,7 +160,7 @@ namespace common {
             OpCode::SKIP_LOWER,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "SKIPLO"
@@ -170,7 +170,7 @@ namespace common {
             OpCode::SKIP_GREATER,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "SKIPGT"
@@ -180,7 +180,7 @@ namespace common {
             OpCode::SKIP_EQUAL,
             {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
-                {ArgModifier::NONE, ArgModifier::REF},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "SKIPEQ"
@@ -190,7 +190,7 @@ namespace common {
             OpCode::JUMPNSTORE,
             {
                 {TypeModifier::W},
-                {ArgModifier::NONE},
+                {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
                 "JNS"
@@ -199,8 +199,8 @@ namespace common {
     };
 
     inline Byte InstructionByte(OpCode opcode, TypeModifier type_modifier, ArgModifier argument_modifier = ArgModifier::NONE) {
-        return static_cast<uint8_t>(static_cast<uint8_t>(opcode) << 3) |
-               static_cast<uint8_t>(static_cast<uint8_t>(type_modifier) << 1) |
+        return static_cast<uint8_t>(static_cast<uint8_t>(opcode) << 4) |
+               static_cast<uint8_t>(static_cast<uint8_t>(type_modifier) << 2) |
                static_cast<uint8_t>(argument_modifier);
     }
 }

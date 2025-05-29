@@ -7,6 +7,7 @@
 void MemoryManager::Load(const common::ByteCode& byte_code) {
     instructions_.clear();
     arguments_.clear();
+    arguments_original_.clear();
 
     instructions_.reserve(byte_code.size());
     arguments_.reserve(byte_code.size());
@@ -30,12 +31,14 @@ void MemoryManager::Load(const common::ByteCode& byte_code) {
         }
 
         WriteInstruction(code, argument);
-
+        arguments_original_.push_back(argument);
         address++;
     }
 
     instructions_.shrink_to_fit();
     arguments_.shrink_to_fit();
+    arguments_original_.shrink_to_fit();
+    arguments_original_ = arguments_;
 }
 
 std::pair<common::Byte, common::Bytes> MemoryManager::ReadInstruction(const common::DoubleByte address) {
@@ -84,7 +87,7 @@ common::Bytes MemoryManager::ReadArgument(common::DoubleByte address) {
         throw std::invalid_argument(std::format("Address {} exceeds available memory.", address));
     }
 
-    if (instructions_.size() < address || instructions_.empty()) {
+    if (instructions_.size() <= address || instructions_.empty()) {
         return {};
     }
 
@@ -94,6 +97,11 @@ common::Bytes MemoryManager::ReadArgument(common::DoubleByte address) {
 void MemoryManager::Reset() {
     instructions_.clear();
     arguments_.clear();
+    arguments_original_.clear();
+}
+
+void MemoryManager::ResetData() {
+    arguments_ = arguments_original_;
 }
 
 size_t MemoryManager::Size() const {

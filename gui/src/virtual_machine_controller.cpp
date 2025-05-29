@@ -27,6 +27,10 @@ void VirtualMachineController::Load(const common::ByteCode& byte_code,
 void VirtualMachineController::OnRun() {
     SetProcessorObserver(debugging_ ? this : nullptr);
 
+    if (state_ == STOPPED) {
+        memory_manager_->ResetData();
+    }
+
     SetState(RUNNING);
 
     QThreadPool::globalInstance()->start([this] {
@@ -50,15 +54,15 @@ void VirtualMachineController::OnStop() {
 
     VirtualMachine::Stop();
     processor_->Reset();
-    // TODO:
-    //memory_manager_->ResetData();
+    memory_manager_->ResetData();
     SetState(STOPPED);
 }
 
 void VirtualMachineController::OnStep() {
-    SetProcessorObserver(nullptr);
+
 
     if (state_ == STOPPED) {
+        SetProcessorObserver(this);
         // Так как машина остановлена, необходимо встать на первую инструкцию, но не выполнять ее
         SetState(PAUSED);
     } else {
@@ -72,6 +76,7 @@ void VirtualMachineController::OnReset() {
     SetProcessorObserver(nullptr);
     VirtualMachine::Reset();
     emit Update();
+    emit Reseted();
 }
 
 void VirtualMachineController::ResetProcessor() const {
@@ -171,6 +176,8 @@ void VirtualMachineController::OnRegisterIpChanged(const common::DoubleByte& ins
         VirtualMachine::Stop();
         SetState(PAUSED);
     }
+    emit StateChanged(state_, debugging_);
+    emit Update();
 }
 
 void VirtualMachineController::OnRegisterAccChanged(const common::Bytes& accumulator) {

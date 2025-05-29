@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread")
 
-set(APP_VERSION_MAJOR 0)
+set(APP_VERSION_MAJOR 2)
 set(APP_VERSION_MINOR 0)
-set(APP_VERSION_PATCH 1)
+set(APP_VERSION_PATCH 0)
 set(APP_VERSION_SUFFIX "alpha")
 
 find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)

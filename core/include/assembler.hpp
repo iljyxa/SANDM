@@ -38,6 +38,7 @@ private:
 
     static std::string Trim(const std::string& str);
     static bool IsValidLabelName(const std::string& name);
+    static bool IsValidChar(const std::string& token) ;
     static bool IsNumberValidForType(common::Bytes bytes, common::TypeModifier type_modifier);
     common::Bytes ParseNumber(const std::string& str, const common::TypeModifier& type_modifier);
     std::string GetLine(std::istringstream& stream);

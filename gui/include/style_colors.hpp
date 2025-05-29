@@ -55,6 +55,10 @@ public:
         return IsDarkTheme() ? QColor(147, 115, 165) : QColor(102, 14, 122);
     }
 
+    static QColor CodeEditorChar() {
+        return IsDarkTheme() ? QColor(0, 128, 0) : QColor(34, 139, 34);
+    }
+
     static QColor CodeEditorOther() {
         return IsDarkTheme() ? QColor(188, 190, 196) : QColor(7, 7, 22);
     }

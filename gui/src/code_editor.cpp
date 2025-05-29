@@ -17,7 +17,11 @@ CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::UpdateLineNumberArea);
 
     UpdateLineNumberAreaWidth(0);
+
     this->setFont(QFont("Droid Sans Mono", 13));
+    QTextOption option = document()->defaultTextOption();
+    option.setTabStopDistance(40);
+    document()->setDefaultTextOption(option);
 
     highlighter_ = new Highlighter(document());
 

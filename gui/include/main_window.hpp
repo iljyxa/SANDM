@@ -53,9 +53,13 @@ private slots:
      */
     void OnDebug();
     /**
-     * @brief Полное обновление состояния виртуальной машины: памяти, регистров.
+     * @brief Обработчик, выоплняемый при запросе обновления состояния виртуальной машины.
      */
     void OnUpdateVm() const;
+    /**
+     * @brief Обработчик, выполняемой при сбросе виртуальной машины
+     */
+    void OnResetVm();
     /**
      * @brief Обработчик изменения состояния виртуальной машины
      * @param state Новое состояние виртуальной машины
@@ -89,11 +93,10 @@ private slots:
     // === Взаимодействие с пользователем ===
     /**
      * @brief Обновление строки состояния
-     * @param row Номер строки
-     * @param column Номер столбца
+     * @param address
      * @param value Значение в ячейке памяти
      */
-    void UpdateStatusBar(int row, int column, common::Word value) const;
+    void UpdateStatusBar(int address, common::Word value) const;
 
 private:
     // === Компоненты интерфейса ===
@@ -122,6 +125,7 @@ private:
     // === Вспомогательные методы ===
     void CreateToolBar();
     void SetToolbarActions(VmState state, bool debugging) const;
+    void UpdateStatusBar_TableCell(int row, int column, common::Word value) const;
     bool UpdateByteCode();
     void CreateMenus();
     void LoadExamples();
@@ -134,7 +138,7 @@ private:
     static void ShowAbout();
 
     // === Реализация ProcessorIo ===
-    void Input(common::Bytes& bytes, common::Type& type) override;
+    void InputAsync(common::Type type, InputCallback callback) override;
     void Output(common::Bytes& bytes, common::Type& type) override;
 };
 

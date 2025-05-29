@@ -1,0 +1,52 @@
+string_hello_world: 'H'
+'e'
+'l'
+'l'
+'o'
+' '
+'W'
+'o'
+'r'
+'l'
+'d'
+'!'
+0x00
+
+Load string_hello_world
+JnS Print
+Jump end
+
+// Функция вывода ascii-строки
+// В регистре должен хранится адрес первого символа
+// Вывод происходит до первого 0 (си-строка)
+// Вывод завершается символами CRLF
+Print:
+	Print_STR: 0 // Адрес текущего символа
+	Print_ACC_original: 0 // Для восстановления значения регистра
+	Store Print_str
+	Store Print_ACC_original
+
+	Print_Loop:
+		Load && Print_str // Загрузка символа в регистр
+		SkipGt C 0	        // Проверка, что 0 не достигнут
+		Jump Print_End    // Если достигнут, то переход к завершению вызова
+		Output C          // Иначе вывод символа
+
+		// Увеличение адреса текущего символа на 1
+		Load & Print_str
+		Add 1
+		Store Print_str
+
+		Jump Print_Loop
+		
+	Print_End:
+	// Вывод символов CRLF
+	Load 0x0D
+	Output C
+	Load 0x0A
+	Output C
+	
+	Load Print_ACC_original // Восстановление значения регистра на момент вызова
+	Jump & Print            // Возврат из функции
+
+end:

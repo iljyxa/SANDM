@@ -25,7 +25,7 @@ public:
             QStringLiteral("\\bMUL\\b"), QStringLiteral("\\bDIV\\b"), QStringLiteral("\\bMOD\\b"),
             QStringLiteral("\\bAND\\b"), QStringLiteral("\\bNOT\\b"), QStringLiteral("\\bLOAD\\b"),
             QStringLiteral("\\bSTORE\\b"), QStringLiteral("\\bINPUT\\b"), QStringLiteral("\\bOUTPUT\\b"),
-            QStringLiteral("\\bJUMP\\b"), QStringLiteral("\\bSKIPLO\\b"), QStringLiteral("\\bSKIPGE\\b"),
+            QStringLiteral("\\bJUMP\\b"), QStringLiteral("\\bSKIPLO\\b"), QStringLiteral("\\bSKIPGT\\b"),
             QStringLiteral("\\bSKIPEQ\\b"), QStringLiteral("\\bJNS\\b")
         };
         for (const QString& pattern : keyword_patterns) {
@@ -44,18 +44,36 @@ public:
         // Модификаторы аргумента
         QTextCharFormat argument_modificator_format;
         argument_modificator_format.setForeground(StyleColors::CodeEditorArgModifier());
-        highlighting_rules_.append({QRegularExpression("\\B=\\B"), argument_modificator_format});
+        highlighting_rules_.append({QRegularExpression("\\B&\\B"), argument_modificator_format});
+        highlighting_rules_.append({QRegularExpression("\\B&&\\B"), argument_modificator_format});
 
         // Метки
         QTextCharFormat label_format;
         label_format.setForeground(StyleColors::CodeEditorOther());
         highlighting_rules_.append({QRegularExpression(QStringLiteral("^[\\s]*([a-zA-Z_0-9]*:)\\B")), label_format});
 
+        // Символы
+        QTextCharFormat char_format;
+        char_format.setForeground(StyleColors::CodeEditorChar());
+        highlighting_rules_.append({QRegularExpression(QStringLiteral("(?:^|\\s)'(.)'(?=\\s|$)")), char_format});
+
         // Числа
         QTextCharFormat number_format;
         number_format.setForeground(StyleColors::CodeEditorNumber());
         highlighting_rules_.append(
-        {QRegularExpression(QStringLiteral("\\b(?:\\d+(?:\\.\\d*)?|0x[0-9A-Fa-f]+|0b[01]+)\\b")),
+        {QRegularExpression(QStringLiteral(
+             "(?:^|\\s)" // Начало строки или пробел перед числом
+             "(" // Группа захвата числа (1)
+             "-?" // Опциональный знак минуса
+             "(?:" // Варианты чисел:
+             "\\d+" // Целое (напр., 42, -5)
+             "(?:\\.\\d+)?" // Или вещественное (напр., 3.14, -0.5)
+             "|0X[0-9A-Fa-f]+" // Или шестнадцатеричное (напр., 0x1F)
+             "|0B[01]+" // Или двоичное (напр., 0b1010)
+             ")"
+             ")"
+             "(?=\\s|$)" // Позитивный просмотр: пробел или конец строки
+             )),
          number_format});
 
         // Комментарии

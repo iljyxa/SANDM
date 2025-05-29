@@ -18,11 +18,13 @@ public:
     common::Bytes ReadArgument(common::DoubleByte address);
 
     void Reset();
+    void ResetData();
     [[nodiscard]] size_t Size() const;
 
 private:
     std::vector<common::Byte> instructions_;
     std::vector<common::Bytes> arguments_;
+    std::vector<common::Bytes> arguments_original_;
 };
 
 #endif

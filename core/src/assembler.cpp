@@ -20,7 +20,8 @@ Assembler::Assembler() :
     };
 
     arg_modifier_map_ = {
-        {"&", common::ArgModifier::REF}
+        {"&", common::ArgModifier::REF},
+        {"&&", common::ArgModifier::REF_REF}
     };
 }
 
@@ -53,10 +54,12 @@ std::pair<common::ByteCode, common::SourceToBytecodeMap> Assembler::CompileInter
     // ReSharper disable once CppUseStructuredBinding
     for (auto& instruction : instructions) {
         if (instruction.using_label_name) {
-            if (labels_addresses.contains(*instruction.using_label_name)) {
-                instruction.argument = labels_addresses[*instruction.using_label_name];
+            std::string label_name_upper = ToUpper(*instruction.using_label_name);
+            if (labels_addresses.contains(label_name_upper)) {
+                instruction.argument = labels_addresses[label_name_upper];
             } else {
-                throw Exception<std::runtime_error>(std::format("Label {} does not exist", *instruction.label_name),
+                throw Exception<std::runtime_error>(std::format("Label {} does not exist",
+                                                    *instruction.using_label_name),
                                                     instruction.line_number);
             }
         }
@@ -106,7 +109,13 @@ Assembler::ParseSource(
         }
 
         if (instruction.label_name) {
-            labels_addresses[*instruction.label_name] = address;
+            std::string label_name_upper = ToUpper(*instruction.label_name);
+            if (!labels_addresses.contains(label_name_upper)) {
+                labels_addresses[label_name_upper] = address;
+            } else {
+                errors.emplace_back(std::format("Line {}: Label {} already exists", instruction.line_number, *instruction.label_name));
+            }
+
         }
 
         instructions.push_back(instruction);
@@ -168,11 +177,6 @@ Instruction Assembler::GetInstruction(const std::string& line) {
     if (stream >> token) {
         if (auto token_upper = ToUpper(token); opcode_map_.contains(token_upper)) {
             result.opcode = opcode_map_[token_upper];
-        } else if (!result.label_name) {
-            // При указании метки доступен синтаксис без команды, поэтому может не
-            // быть команды. Однако если метка не указана и указана неизвестная
-            // команда, то это ошибка
-            throw Exception<std::runtime_error>(std::format("Unknown command: {}", token));
         } else {
             stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
         }
@@ -180,10 +184,16 @@ Instruction Assembler::GetInstruction(const std::string& line) {
 
     // Чтение модификатора типа
     if (stream >> token) {
-        if (type_modifier_map_.contains(ToUpper(token))) {
-            result.type_modifier = type_modifier_map_[ToUpper(token)];
+        auto token_upper = ToUpper(token);
+        if (type_modifier_map_.contains(token_upper)) {
+            auto type_modifier = type_modifier_map_[token_upper];
+            if (common::OPCODE_PROPERTIES.at(result.opcode).allowed_type_modifiers.contains(type_modifier)) {
+                result.type_modifier = type_modifier;
+            } else {
+                throw Exception<std::runtime_error>(
+                    std::format("Modifier {} cannot be used", token));
+            }
         } else {
-            // ReSharper disable once CppTooWideScopeInitStatement
             const auto& properties = common::OPCODE_PROPERTIES.at(result.opcode);
             if (properties.allowed_type_modifiers.contains(common::TypeModifier::SW)) {
                 result.type_modifier = common::TypeModifier::SW;
@@ -196,12 +206,14 @@ Instruction Assembler::GetInstruction(const std::string& line) {
 
     // Чтение модификатора аргумента
     if (stream >> token) {
-        if (auto token_upper = ToUpper(token); arg_modifier_map_.contains(token_upper)) {
-            if (!result.label_name) {
-                result.argument_modifier = arg_modifier_map_[token_upper];
+        auto token_upper = ToUpper(token);
+        if (arg_modifier_map_.contains(token_upper)) {
+            auto argument_modifier = arg_modifier_map_[token_upper];
+            if (common::OPCODE_PROPERTIES.at(result.opcode).allowed_arg_modifiers.contains(argument_modifier)) {
+                result.argument_modifier = argument_modifier;
             } else {
                 throw Exception<std::runtime_error>(
-                    std::format("Argument modifier {} cannot be used with labels: {}", token, *result.label_name));
+                    std::format("Modifier {} cannot be used", token));
             }
         } else {
             stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
@@ -210,20 +222,35 @@ Instruction Assembler::GetInstruction(const std::string& line) {
 
     // Чтение аргумента
     if (stream >> token) {
+        if (token == "'") {
+            if (char next_char; stream.get(next_char)) {
+                token += next_char;
+
+                if (stream.get(next_char)) {
+                    token += next_char;
+                } else {
+                    stream.clear();
+                }
+            } else {
+                stream.clear();
+            }
+        }
+
         if (IsValidLabelName(token)) {
             result.using_label_name = token;
+        } else if (IsValidChar(token)) {
+            result.argument = static_cast<int>(token[1]);
         } else {
             try {
                 result.argument = ParseNumber(token, result.type_modifier);
             } catch ([[maybe_unused]] const std::exception& e) {
-                throw Exception<std::invalid_argument>(
-                    std::format("Invalid number format: {}", token));
+                stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
             }
         }
     }
 
     if (stream >> token) {
-        throw Exception<std::invalid_argument>(std::format("Invalid command format: {}", line));
+        throw Exception<std::invalid_argument>(std::format("Invalid instruction: {}", line));
     }
 
     return result;
@@ -270,8 +297,9 @@ void Assembler::ValidateStringNumber(const std::string& str) {
 }
 
 std::string Assembler::Trim(const std::string& str) {
-    const auto left = str.find_first_not_of(' ');
-    const auto right = str.find_last_not_of(' ');
+
+    const auto left = str.find_first_not_of(" \t");
+    const auto right = str.find_last_not_of(" \t");
 
     if (left == std::string::npos) {
         return "";
@@ -279,12 +307,22 @@ std::string Assembler::Trim(const std::string& str) {
 
     std::string result = str.substr(left, right - left + 1);
 
-    const std::string from = "  ";
-    const std::string to = " ";
-    size_t start_pos = 0;
-    while ((start_pos = result.find(from, start_pos)) != std::string::npos) {
-        result.replace(start_pos, from.length(), to);
-        start_pos += to.length();
+    const std::string whitespace = " \t";
+    bool in_whitespace = false;
+
+    for (size_t i = 0; i < result.length(); ) {
+        if (whitespace.find(result[i]) != std::string::npos) {
+            if (in_whitespace) {
+                result.erase(i, 1);
+            } else {
+                result[i] = ' ';
+                in_whitespace = true;
+                ++i;
+            }
+        } else {
+            in_whitespace = false;
+            ++i;
+        }
     }
 
     return result;
@@ -309,26 +347,36 @@ bool Assembler::IsValidLabelName(const std::string& name) {
     return true;
 }
 
+bool Assembler::IsValidChar(const std::string& token) {
+    if (token.size() != 3
+        || token[0] != '\'' || token[2] != '\'') {
+
+        return false;
+    }
+
+    return true;
+}
+
 bool Assembler::IsNumberValidForType(const common::Bytes bytes, const common::TypeModifier type_modifier) {
-    // TODO: необходимо переписать
-    if (type_modifier == common::TypeModifier::C) {
+    switch (type_modifier) {
+    case common::TypeModifier::C: {
         const auto value = static_cast<char>(bytes);
         return value >= -128 && value <= 127;
     }
-    if (type_modifier == common::TypeModifier::W) {
+    case common::TypeModifier::W: {
         const auto value = static_cast<int32_t>(bytes);
         return value >= INT32_MIN && value <= INT32_MAX;
     }
-    if (type_modifier == common::TypeModifier::SW) {
+    case common::TypeModifier::SW: {
         const auto value = static_cast<uint32_t>(bytes);
         return value <= UINT32_MAX;
     }
-    if (type_modifier == common::TypeModifier::R) {
-        auto value = static_cast<float>(bytes);
+    case common::TypeModifier::R: {
         return true;
     }
-
-    return false;
+    default:
+        return false;
+    }
 }
 
 common::Bytes Assembler::ParseNumber(const std::string& str, const common::TypeModifier& type_modifier) {
