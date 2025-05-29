@@ -3,6 +3,7 @@
 
 #include <limits>
 #include <set>
+#include <unordered_map>
 #include <vector>
 #include "bytes.hpp"
 
