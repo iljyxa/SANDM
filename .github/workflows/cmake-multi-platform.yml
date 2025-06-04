@@ -7,29 +7,39 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  build_and_test:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
 
-    # Устанавливаем Qt 6.5.0 с корректными модулями
+    # Установка Qt 6.5.0 минимальным рабочим способом
     - name: Install Qt 6.5.0
       shell: bash
       run: |
         sudo apt-get remove '^qt6-.*' -y
         sudo apt-get install -y python3-pip
         pip install aqtinstall
+        
         # Сначала проверяем доступные модули
+        echo "Доступные модули для Qt 6.5.0 gcc_64:"
         aqt list-qt linux desktop --modules 6.5.0 gcc_64
-        # Устанавливаем только существующие модули
-        aqt install-qt linux desktop 6.5.0 gcc_64 -m qtbase qt5compat qtdeclarative
+        
+        # Устанавливаем только базовый Qt без указания модулей
+        aqt install-qt linux desktop 6.5.0 gcc_64
+        
         echo "Qt6_DIR=$HOME/Qt/6.5.0/gcc_64/lib/cmake/Qt6" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=$HOME/Qt/6.5.0/gcc_64/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
     - name: Install Build Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y g++ cmake make ninja-build
+        sudo apt-get install -y \
+          g++ \
+          cmake \
+          make \
+          ninja-build \
+          libgl1-mesa-dev
 
     - name: Configure CMake
       shell: bash
