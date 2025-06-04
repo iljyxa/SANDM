@@ -62,7 +62,7 @@ install(TARGETS SANDM
 
 qt_generate_deploy_app_script(
         TARGET SANDM
-        OUTPUT_SCRIPT deploy_script
+        FILENAME_VARIABLE deploy_script
         NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})
