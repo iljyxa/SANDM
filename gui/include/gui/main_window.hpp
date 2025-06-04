@@ -4,13 +4,13 @@
 #include <QMainWindow>
 #include "code_editor.hpp"
 #include "console.hpp"
-#include "memory_model.hpp"
-#include "memory_view.hpp"
-#include "register_editor.hpp"
-#include "virtual_machine_controller.hpp"
-#include "../../core/include/assembler.hpp"
-#include "../../core/include/common_definitions.hpp"
-#include "../../core/include/virtual_machine.hpp"
+#include "core/assembler.hpp"
+#include "core/common_definitions.hpp"
+#include "core/virtual_machine.hpp"
+#include "gui/memory_model.hpp"
+#include "gui/memory_view.hpp"
+#include "gui/register_editor.hpp"
+#include "gui/virtual_machine_controller.hpp"
 
 /**
  * @brief Главное окно приложения SANDM (Simple Assembler Non-stack Demo Machine)

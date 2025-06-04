@@ -5,7 +5,7 @@
 #include <set>
 #include <unordered_map>
 #include <vector>
-#include "bytes.hpp"
+#include "core/bytes.hpp"
 
 namespace common {
     enum class OpCode {
@@ -53,7 +53,7 @@ namespace common {
                 {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
                 {ArgModifier::NONE},
                 false,
-                false,
+                true,
                 "NOPE"
             }
         },
@@ -110,7 +110,7 @@ namespace common {
         {
             OpCode::LOAD,
             {
-                {TypeModifier::W},
+                {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
                 {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,

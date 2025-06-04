@@ -3,6 +3,7 @@
 #include <QSpinBox>
 
 class HexSpinBox final : public QSpinBox {
+    Q_OBJECT
 public:
     explicit HexSpinBox(QWidget *parent = nullptr) :
         QSpinBox(parent) {

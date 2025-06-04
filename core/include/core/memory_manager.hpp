@@ -2,7 +2,7 @@
 #define MEMORY_MANAGER_HPP
 
 #include <vector>
-#include "common_definitions.hpp"
+#include "core/common_definitions.hpp"
 
 class MemoryManager {
 public:

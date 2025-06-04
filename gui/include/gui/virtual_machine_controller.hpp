@@ -5,8 +5,8 @@
 #include <QSet>
 #include <QThreadPool>
 
-#include "../../core/include/processor_observer.hpp"
-#include "../../core/include/virtual_machine.hpp"
+#include "core/processor_observer.hpp"
+#include "core/virtual_machine.hpp"
 
 /**
  * @enum VmState

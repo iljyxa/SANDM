@@ -4,8 +4,8 @@
 #include <QAbstractTableModel>
 
 #include "virtual_machine_controller.hpp"
-#include "../../core/include/common_definitions.hpp"
-#include "../../core/include/virtual_machine.hpp"
+#include "core/common_definitions.hpp"
+#include "core/virtual_machine.hpp"
 
 class MemoryModel final : public QAbstractTableModel {
     Q_OBJECT

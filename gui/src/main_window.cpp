@@ -13,8 +13,8 @@
 #include <QToolBar>
 #include <QVBoxLayout>
 
-#include "../../gui/include/main_window.hpp"
-#include "../../gui/include/style_colors.hpp"
+#include "../include/gui/main_window.hpp"
+#include "../include/gui/style_colors.hpp"
 
 MainWindow::MainWindow(QWidget* parent) :
     QMainWindow(parent),

@@ -2,7 +2,7 @@
 #ifndef PROCESSOR_IO_HPP
 #define PROCESSOR_IO_HPP
 
-#include "common_definitions.hpp"
+#include "core/common_definitions.hpp"
 
 class ProcessorIo {
 public:

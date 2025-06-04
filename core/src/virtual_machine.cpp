@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../include/virtual_machine.hpp"
+#include "core/virtual_machine.hpp"
 
 VirtualMachine::VirtualMachine(ProcessorIo* processor_io) :
     memory_manager_(std::make_unique<MemoryManager>()),

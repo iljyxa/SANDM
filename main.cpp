@@ -1,6 +1,6 @@
 
 #include <QApplication>
-#include "gui/include/main_window.hpp"
+#include "gui/include/gui/main_window.hpp"
 #include "version.hpp"
 
 int main(int argc, char* argv[]) {

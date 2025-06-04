@@ -5,7 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "common_definitions.hpp"
+#include "core/common_definitions.hpp"
 
 struct Instruction {
     common::OpCode opcode = common::OpCode::NOPE;

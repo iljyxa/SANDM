@@ -2,9 +2,9 @@
 #ifndef VIRTUAL_MACHINE_HPP
 #define VIRTUAL_MACHINE_HPP
 
-#include "memory_manager.hpp"
-#include "processor.hpp"
-#include "processor_io.hpp"
+#include "core/memory_manager.hpp"
+#include "core/processor.hpp"
+#include "core/processor_io.hpp"
 
 class VirtualMachine : public ProcessorIo {
 public:

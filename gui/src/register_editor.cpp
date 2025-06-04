@@ -1,4 +1,4 @@
-#include "../../gui/include/register_editor.hpp"
+#include "../include/gui/register_editor.hpp"
 #include <QFormLayout>
 
 RegisterEditor::RegisterEditor(QWidget* parent) :

@@ -3,7 +3,7 @@
 
 #include <QRegularExpression>
 #include <QSyntaxHighlighter>
-#include "style_colors.hpp"
+#include "gui/style_colors.hpp"
 
 class Highlighter final : public QSyntaxHighlighter {
     Q_OBJECT

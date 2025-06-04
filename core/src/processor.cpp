@@ -1,4 +1,4 @@
-#include "../../core/include/processor.hpp"
+#include "../include/core/processor.hpp"
 
 Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, ProcessorIo* io) :
     memory_(memory),
@@ -93,8 +93,17 @@ Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, Process
     };
 
     // load
+    instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::C)] = [this] {
+        Load<common::Byte>();
+    };
     instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::W)] = [this] {
-        Load();
+        Load<common::Word>();
+    };
+    instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::SW)] = [this] {
+        Load<common::SignedWord>();
+    };
+    instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::R)] = [this] {
+        Load<common::Real>();
     };
 
     // store
@@ -364,6 +373,9 @@ void Processor::Div() {
 
 template <typename T>
 void Processor::Mod() {
+    if (static_cast<T>(registers_.auxiliary) == 0) {
+        throw std::runtime_error("Error: Modulo by zero");
+    }
     SetAccumulator(static_cast<T>(static_cast<T>(registers_.accumulator) % static_cast<T>(registers_.auxiliary)));
     NextInstruction();
 }
@@ -372,8 +384,9 @@ void Processor::Mod() {
  *  Работа с памятью
  */
 
+template <typename T>
 void Processor::Load() {
-    SetAccumulator(static_cast<common::Word>(registers_.auxiliary));
+    SetAccumulator(static_cast<T>(registers_.auxiliary));
     NextInstruction();
 }
 

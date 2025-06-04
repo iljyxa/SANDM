@@ -2,7 +2,7 @@
 #include <ranges>
 #include <stdexcept>
 
-#include "../../core/include/memory_manager.hpp"
+#include "../include/core/memory_manager.hpp"
 
 void MemoryManager::Load(const common::ByteCode& byte_code) {
     instructions_.clear();
@@ -56,8 +56,8 @@ void MemoryManager::WriteInstruction(const common::Byte code, const common::Byte
     }
 
     if (instructions_.size() <= address) {
-        instructions_.resize(address);
-        arguments_.resize(address);
+        instructions_.resize(address + 1);
+        arguments_.resize(address + 1);
     }
 
     instructions_[address] = code;
@@ -74,9 +74,9 @@ void MemoryManager::WriteArgument(const common::Bytes argument, const common::Do
         throw std::invalid_argument(std::format("Address {} exceeds available memory.", address));
     }
 
-    if (instructions_.size() <= address) {
-        instructions_.resize(address);
-        arguments_.resize(address);
+    if (arguments_.size() <= address) {
+        instructions_.resize(address + 1);
+        arguments_.resize(address + 1);
     }
 
     arguments_[address] = argument;
@@ -87,7 +87,7 @@ common::Bytes MemoryManager::ReadArgument(common::DoubleByte address) {
         throw std::invalid_argument(std::format("Address {} exceeds available memory.", address));
     }
 
-    if (instructions_.size() <= address || instructions_.empty()) {
+    if (arguments_.size() <= address || arguments_.empty()) {
         return {};
     }
 

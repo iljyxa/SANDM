@@ -6,10 +6,10 @@
 #include <thread>
 #include <unordered_map>
 
-#include "common_definitions.hpp"
-#include "memory_manager.hpp"
-#include "processor_io.hpp"
-#include "processor_observer.hpp"
+#include "core/common_definitions.hpp"
+#include "core/memory_manager.hpp"
+#include "core/processor_io.hpp"
+#include "core/processor_observer.hpp"
 
 struct Registers {
     common::Bytes accumulator{};
@@ -218,6 +218,7 @@ private:
     void Div();
     template <class T>
     void Mod();
+    template <typename T>
     void Load();
     void Store();
     template <class T>
@@ -232,6 +233,8 @@ private:
     template <class T>
     void SkipEqual();
     void JumpAndStore();
+
+    friend class AssemblerTest_Add_Test;
 
 };
 

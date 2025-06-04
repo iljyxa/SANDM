@@ -1,5 +1,5 @@
-#include "../../gui/include/code_editor.hpp"
-#include "../../gui/include/style_colors.hpp"
+#include "../include/gui/code_editor.hpp"
+#include "../include/gui/style_colors.hpp"
 
 #include <QPainterPath>
 #include <QThreadPool>

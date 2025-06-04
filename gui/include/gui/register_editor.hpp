@@ -2,7 +2,7 @@
 #define REGISTER_EDITOR_HPP
 
 #include "hex_spin_box.hpp"
-#include "../../core/include/common_definitions.hpp"
+#include "core/common_definitions.hpp"
 
 class RegisterEditor final : public QWidget {
     Q_OBJECT

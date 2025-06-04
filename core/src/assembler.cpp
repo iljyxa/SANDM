@@ -1,4 +1,4 @@
-#include "../../core/include/assembler.hpp"
+#include "../include/core/assembler.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <format>
@@ -221,7 +221,9 @@ Instruction Assembler::GetInstruction(const std::string& line) {
     }
 
     // Чтение аргумента
-    if (stream >> token) {
+    if (common::OPCODE_PROPERTIES.at(result.opcode).is_argument_available
+        && stream >> token) {
+
         if (token == "'") {
             if (char next_char; stream.get(next_char)) {
                 token += next_char;

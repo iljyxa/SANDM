@@ -1,6 +1,6 @@
 #include <utility>
 
-#include "../include/virtual_machine_controller.hpp"
+#include "../include/gui/virtual_machine_controller.hpp"
 
 VirtualMachineController::VirtualMachineController(ProcessorIo* processor_io, QObject* parent) :
     QObject(parent),

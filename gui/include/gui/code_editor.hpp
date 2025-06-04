@@ -6,8 +6,8 @@
 #include <QTimer>
 #include <iostream>
 
-#include "syntax_highlighter.hpp"
-#include "../../core/include/assembler.hpp"
+#include "core/assembler.hpp"
+#include "gui/syntax_highlighter.hpp"
 
 class CodeEditor final : public QPlainTextEdit {
     Q_OBJECT

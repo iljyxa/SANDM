@@ -1,54 +1,48 @@
 cmake_minimum_required(VERSION 3.16)
-
 project(SANDM LANGUAGES CXX)
 
 set(CMAKE_PREFIX_PATH "/Library/Qt/6.9.0/macos")
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static -lpthread")
 
 set(APP_VERSION_MAJOR 2)
 set(APP_VERSION_MINOR 0)
 set(APP_VERSION_PATCH 0)
 set(APP_VERSION_SUFFIX "alpha")
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)
+include(FetchContent)
 
+set(INSTALL_GTEST OFF)
+set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/refs/heads/main.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)
 qt_standard_project_setup()
 
 qt_add_resources(RESOURCES sandm.qrc)
 
-qt_add_executable(SANDM main.cpp
-        core/include/memory_manager.hpp core/src/memory_manager.cpp
-        core/include/processor.hpp core/src/processor.cpp
-        core/include/processor_observer.hpp
-        core/src/assembler.cpp core/include/assembler.hpp
-        core/include/bytes.hpp
-        core/include/common_definitions.hpp
-        gui/src/main_window.cpp
-        gui/include/main_window.hpp
-        gui/include/code_editor.hpp
-        gui/include/syntax_highlighter.hpp
-        gui/src/code_editor.cpp
-        gui/include/console.hpp
-        gui/include/register_editor.hpp
-        gui/src/register_editor.cpp
-        gui/include/hex_spin_box.hpp
-        gui/include/memory_model.hpp
-        gui/include/memory_view.hpp
-        core/include/processor_io.hpp
-        core/include/virtual_machine.hpp
-        gui/include/virtual_machine_controller.hpp
+add_subdirectory(core)
+add_subdirectory(gui)
+add_subdirectory(tests)
+
+qt_add_executable(SANDM
+        main.cpp
         ${RESOURCES}
-        gui/include/main_window.hpp
-        gui/src/virtual_machine_controller.cpp
-        core/src/virtual_machine.cpp
-        version.hpp
-        gui/include/style_colors.hpp
 )
 
 target_link_libraries(SANDM
         PRIVATE
+        core
+        gui
         Qt::Core
         Qt::Gui
         Qt::Widgets
@@ -67,32 +61,3 @@ qt_generate_deploy_app_script(
         NO_UNSUPPORTED_PLATFORM_ERROR
 )
 install(SCRIPT ${deploy_script})
-
-if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(DEBUG_SUFFIX)
-    if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
-        set(DEBUG_SUFFIX "d")
-    endif ()
-    set(QT_INSTALL_PATH "${CMAKE_PREFIX_PATH}")
-    if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
-        set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        if (NOT EXISTS "${QT_INSTALL_PATH}/bin")
-            set(QT_INSTALL_PATH "${QT_INSTALL_PATH}/..")
-        endif ()
-    endif ()
-    if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
-    endif ()
-    foreach (QT_LIB Core Gui Widgets)
-        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy
-                "${QT_INSTALL_PATH}/bin/Qt6${QT_LIB}${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-    endforeach (QT_LIB)
-endif ()

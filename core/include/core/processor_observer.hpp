@@ -1,6 +1,6 @@
 #ifndef PROCESSOR_OBSERVER_HPP
 #define PROCESSOR_OBSERVER_HPP
-#include "common_definitions.hpp"
+#include "core/common_definitions.hpp"
 
 /**
  * @class ProcessorObserver
