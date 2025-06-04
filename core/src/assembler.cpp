@@ -165,7 +165,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
             result.label_name = token.substr(0, token.length() - 1);
 
             if (!IsValidLabelName(*result.label_name)) {
-                throw Exception<std::runtime_error>(
+                throw Exception<std::invalid_argument>(
                     std::format("Invalid label name: {}", *result.label_name));
             }
         } else {
@@ -190,7 +190,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
             if (common::OPCODE_PROPERTIES.at(result.opcode).allowed_type_modifiers.contains(type_modifier)) {
                 result.type_modifier = type_modifier;
             } else {
-                throw Exception<std::runtime_error>(
+                throw Exception<std::domain_error>(
                     std::format("Modifier {} cannot be used", token));
             }
         } else {
@@ -212,7 +212,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
             if (common::OPCODE_PROPERTIES.at(result.opcode).allowed_arg_modifiers.contains(argument_modifier)) {
                 result.argument_modifier = argument_modifier;
             } else {
-                throw Exception<std::runtime_error>(
+                throw Exception<std::domain_error>(
                     std::format("Modifier {} cannot be used", token));
             }
         } else {
@@ -252,7 +252,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
     }
 
     if (stream >> token) {
-        throw Exception<std::invalid_argument>(std::format("Invalid instruction: {}", line));
+        throw Exception<std::runtime_error>(std::format("Invalid instruction: {}", line));
     }
 
     return result;
@@ -362,19 +362,20 @@ bool Assembler::IsValidChar(const std::string& token) {
 bool Assembler::IsNumberValidForType(const common::Bytes bytes, const common::TypeModifier type_modifier) {
     switch (type_modifier) {
     case common::TypeModifier::C: {
-        const auto value = static_cast<char>(bytes);
-        return value >= -128 && value <= 127;
+        const auto value = static_cast<uint64_t>(bytes);
+        return value >= std::numeric_limits<common::Byte>::min() && value <= std::numeric_limits<common::Byte>::max();
     }
     case common::TypeModifier::W: {
-        const auto value = static_cast<int32_t>(bytes);
-        return value >= INT32_MIN && value <= INT32_MAX;
+        const auto value = static_cast<uint64_t>(bytes);
+        return value >= std::numeric_limits<common::Word>::min() && value <= std::numeric_limits<common::Word>::max();
     }
     case common::TypeModifier::SW: {
-        const auto value = static_cast<uint32_t>(bytes);
-        return value <= UINT32_MAX;
+        const auto value = static_cast<int64_t>(bytes);
+        return value >= std::numeric_limits<common::SignedWord>::min() && value <= std::numeric_limits<common::SignedWord>::max();
     }
     case common::TypeModifier::R: {
-        return true;
+        const auto value = static_cast<double_t>(bytes);
+        return value >= std::numeric_limits<common::Real>::min() && value <= std::numeric_limits<common::Real>::max();
     }
     default:
         return false;
@@ -389,7 +390,7 @@ common::Bytes Assembler::ParseNumber(const std::string& str, const common::TypeM
     if (str.starts_with("0b")) {
         std::string binary_string = str.substr(2); // Убираем "0b"
         if (binary_string.size() > common::ARGUMENT_SIZE * 8) {
-            throw Exception<std::invalid_argument>(
+            throw Exception<std::out_of_range>(
                 std::format("Binary string {} is too long (max {} bits)", str, std::to_string(common::ARGUMENT_SIZE * 8)));
         }
 
@@ -405,7 +406,7 @@ common::Bytes Assembler::ParseNumber(const std::string& str, const common::TypeM
         // Обработка шестнадцатеричной строки
         std::string hex_string = str.substr(2); // Убираем "0x"
         if (hex_string.size() > common::ARGUMENT_SIZE * 2) {
-            throw Exception<std::invalid_argument>(
+            throw Exception<std::out_of_range>(
                 std::format("Hex string {} is too long (max {} nibbles)", str, std::to_string(common::ARGUMENT_SIZE * 2)));
         }
 
@@ -445,3 +446,4 @@ std::string Assembler::ToUpper(std::string& str) {
     std::ranges::transform(str, str.begin(), toupper);
     return str;
 }
+

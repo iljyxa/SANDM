@@ -26,6 +26,7 @@ public:
      *
      * Цикл продолжает выполняться до изменения состояния `is_running_` на `false`, что может быть выполнено
      * посредством вызова других методов, таких как Stop() или до установки регистра IP на адрес, по которому нет инструкций.
+     *
      */
     void Run();
     /**
@@ -233,9 +234,6 @@ private:
     template <class T>
     void SkipEqual();
     void JumpAndStore();
-
-    friend class AssemblerTest_Add_Test;
-
 };
 
 #endif
