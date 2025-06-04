@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
 project(SANDM LANGUAGES CXX)
 
-set(CMAKE_PREFIX_PATH "/Library/Qt/6.9.0/macos")
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
+
+if(NOT Qt6_FOUND)
+    message(FATAL_ERROR "Qt6 not found!")
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
