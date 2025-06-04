@@ -2,53 +2,64 @@ name: CMake + Qt 6.5 (Linux GCC)
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
-  build_and_test:
+  build:
     runs-on: ubuntu-latest
+    env:
+      QT_VERSION: 6.5.0
+      QT_ARCH: gcc_64
 
     steps:
     - uses: actions/checkout@v4
 
-    # Установка Qt 6.5.0 минимальным рабочим способом
-    - name: Install Qt 6.5.0
+    - name: Setup Qt ${{ env.QT_VERSION }}
       shell: bash
       run: |
+        # Удаляем возможные конфликтующие версии Qt
         sudo apt-get remove '^qt6-.*' -y
-        sudo apt-get install -y python3-pip
+        
+        # Устанавливаем необходимые системные зависимости
+        sudo apt-get update
+        sudo apt-get install -y \
+          python3-pip \
+          libgl1-mesa-dev \
+          libxkbcommon-x11-0
+        
+        # Устанавливаем aqtinstall
         pip install aqtinstall
         
-        # Сначала проверяем доступные модули
-        echo "Доступные модули для Qt 6.5.0 gcc_64:"
-        aqt list-qt linux desktop --modules 6.5.0 gcc_64
+        # Устанавливаем Qt
+        aqt install-qt linux desktop ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}
         
-        # Устанавливаем только базовый Qt без указания модулей
-        aqt install-qt linux desktop 6.5.0 gcc_64
+        # Устанавливаем дополнительные модули (если нужны)
+        # aqt install-tool linux desktop tools_ifw
         
-        echo "Qt6_DIR=$HOME/Qt/6.5.0/gcc_64/lib/cmake/Qt6" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=$HOME/Qt/6.5.0/gcc_64/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+        # Настраиваем переменные окружения
+        QT_PATH="$HOME/Qt/${{ env.QT_VERSION }}/${{ env.QT_ARCH }}"
+        echo "QT_DIR=$QT_PATH" >> $GITHUB_ENV
+        echo "PATH=$QT_PATH/bin:$PATH" >> $GITHUB_ENV
+        echo "LD_LIBRARY_PATH=$QT_PATH/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
     - name: Install Build Tools
       run: |
-        sudo apt-get update
         sudo apt-get install -y \
           g++ \
           cmake \
           make \
-          ninja-build \
-          libgl1-mesa-dev
+          ninja-build
 
     - name: Configure CMake
       shell: bash
       run: |
         cmake -B build \
+          -DCMAKE_PREFIX_PATH="$QT_DIR" \
           -DCMAKE_CXX_COMPILER=g++ \
           -DCMAKE_C_COMPILER=gcc \
           -DCMAKE_BUILD_TYPE=Release \
-          -DQt6_DIR="$Qt6_DIR" \
           -S .
 
     - name: Build
