@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(SANDM LANGUAGES CXX)
 
+message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+message(STATUS "QT_DIR: $ENV{QT_DIR}")
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
 
 if(NOT Qt6_FOUND)
