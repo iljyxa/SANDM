@@ -30,7 +30,7 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Widgets)
 qt_standard_project_setup()
 
 qt_add_resources(RESOURCES sandm.qrc)
