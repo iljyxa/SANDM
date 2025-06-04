@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      QT_VERSION: 6.5.0
+      QT_VERSION: 6.5.3
       QT_ARCH: gcc_64
 
     steps:
@@ -19,44 +19,58 @@ jobs:
     - name: Setup Qt ${{ env.QT_VERSION }}
       shell: bash
       run: |
-        # Удаляем возможные конфликтующие версии Qt
+        # Полная очистка возможных конфликтов
         sudo apt-get remove '^qt6-.*' -y
+        sudo rm -rf /usr/local/Qt*
         
-        # Устанавливаем необходимые системные зависимости
+        # Установка зависимостей
         sudo apt-get update
         sudo apt-get install -y \
           python3-pip \
           libgl1-mesa-dev \
-          libxkbcommon-x11-0
+          libxkbcommon-x11-0 \
+          libvulkan1
         
-        # Устанавливаем aqtinstall
-        pip install aqtinstall
+        # Установка aqtinstall
+        python -m pip install --upgrade pip
+        pip install aqtinstall==3.1.9  # Проверенная стабильная версия
         
-        # Устанавливаем Qt
-        aqt install-qt linux desktop ${{ env.QT_VERSION }} ${{ env.QT_ARCH }}
+        # Установка Qt с явным указанием всех компонентов
+        aqt install-qt linux desktop ${{ env.QT_VERSION }} ${{ env.QT_ARCH }} \
+          -m qtbase qt5compat qtsvg qtdeclarative
         
-        # Устанавливаем дополнительные модули (если нужны)
-        # aqt install-tool linux desktop tools_ifw
-        
-        # Настраиваем переменные окружения
+        # Проверка установки
         QT_PATH="$HOME/Qt/${{ env.QT_VERSION }}/${{ env.QT_ARCH }}"
-        echo "QT_DIR=$QT_PATH" >> $GITHUB_ENV
+        echo "Checking Qt installation..."
+        ls -la $QT_PATH/lib/cmake
+        $QT_PATH/bin/qmake --version
+        
+        # Настройка переменных
+        echo "CMAKE_PREFIX_PATH=$QT_PATH" >> $GITHUB_ENV
+        echo "Qt6_DIR=$QT_PATH/lib/cmake/Qt6" >> $GITHUB_ENV
         echo "PATH=$QT_PATH/bin:$PATH" >> $GITHUB_ENV
-        echo "LD_LIBRARY_PATH=$QT_PATH/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
 
     - name: Install Build Tools
       run: |
         sudo apt-get install -y \
-          g++ \
+          g++-12 \
           cmake \
-          make \
-          ninja-build
+          ninja-build \
+          ccache
+        
+        # Создаем симлинки для совместимости
+        sudo ln -sf /usr/bin/g++-12 /usr/bin/g++
+        sudo ln -sf /usr/bin/gcc-12 /usr/bin/gcc
 
     - name: Configure CMake
       shell: bash
       run: |
+        echo "Using CMAKE_PREFIX_PATH: $CMAKE_PREFIX_PATH"
+        echo "Using Qt6_DIR: $Qt6_DIR"
+        
         cmake -B build \
-          -DCMAKE_PREFIX_PATH="$QT_DIR" \
+          -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
+          -DQt6_DIR="$Qt6_DIR" \
           -DCMAKE_CXX_COMPILER=g++ \
           -DCMAKE_C_COMPILER=gcc \
           -DCMAKE_BUILD_TYPE=Release \
