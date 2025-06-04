@@ -1,6 +1,8 @@
 #ifndef PROCESSOR_HPP
 #define PROCESSOR_HPP
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <bitset>
 #include <functional>
 #include <thread>
 

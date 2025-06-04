@@ -23,7 +23,6 @@ Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, Process
         Nope();
     };
 
-
     // add
     instructions_handlers_[InstructionByte(snm::OpCode::ADD, snm::TypeModifier::C)] = [this] {
         Add<snm::Byte>();
