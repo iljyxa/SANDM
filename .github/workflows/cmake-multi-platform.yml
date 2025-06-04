@@ -27,7 +27,6 @@ jobs:
           ninja-build \
           ccache
         
-        # Создаем симлинки для совместимости
         sudo ln -sf /usr/bin/g++-12 /usr/bin/g++
         sudo ln -sf /usr/bin/gcc-12 /usr/bin/gcc
 
@@ -40,6 +39,9 @@ jobs:
         cmake -B build \
           -DCMAKE_PREFIX_PATH="$CMAKE_PREFIX_PATH" \
           -DQt6_DIR="$Qt6_DIR" \
+          -DCMAKE_CXX_STANDARD=20 \
+          -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+          -DCMAKE_CXX_EXTENSIONS=OFF \
           -DCMAKE_CXX_COMPILER=g++ \
           -DCMAKE_C_COMPILER=gcc \
           -DCMAKE_BUILD_TYPE=Release \
