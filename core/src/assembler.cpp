@@ -8,38 +8,38 @@
 
 Assembler::Assembler() :
     line_number_(0) {
-    for (const auto& [opcode, properties] : common::OPCODE_PROPERTIES) {
+    for (const auto& [opcode, properties] : snm::OPCODE_PROPERTIES) {
         opcode_map_.insert({properties.name, opcode});
     }
 
     type_modifier_map_ = {
-        {"C", common::TypeModifier::C},
-        {"W", common::TypeModifier::W},
-        {"SW", common::TypeModifier::SW},
-        {"R", common::TypeModifier::R}
+        {"C", snm::TypeModifier::C},
+        {"W", snm::TypeModifier::W},
+        {"SW", snm::TypeModifier::SW},
+        {"R", snm::TypeModifier::R}
     };
 
     arg_modifier_map_ = {
-        {"&", common::ArgModifier::REF},
-        {"&&", common::ArgModifier::REF_REF}
+        {"&", snm::ArgModifier::REF},
+        {"&&", snm::ArgModifier::REF_REF}
     };
 }
 
-common::ByteCode Assembler::Compile(const std::string& source) {
+snm::ByteCode Assembler::Compile(const std::string& source) {
     auto [byte_code, source_to_bytecode_map] = CompileInternal(source);
 
     return byte_code;
 }
 
-std::pair<common::ByteCode, common::SourceToBytecodeMap> Assembler::CompileWithDebugInfo(const std::string& source) {
+std::pair<snm::ByteCode, snm::SourceToBytecodeMap> Assembler::CompileWithDebugInfo(const std::string& source) {
     return CompileInternal(source);
 }
 
-std::pair<common::ByteCode, common::SourceToBytecodeMap> Assembler::CompileInternal(const std::string& source) {
-    common::ByteCode byte_code{};
-    common::SourceToBytecodeMap source_to_bytecode_map;
+std::pair<snm::ByteCode, snm::SourceToBytecodeMap> Assembler::CompileInternal(const std::string& source) {
+    snm::ByteCode byte_code{};
+    snm::SourceToBytecodeMap source_to_bytecode_map;
 
-    common::DoubleByte current_bytecode = 0;
+    snm::DoubleByte current_bytecode = 0;
 
     // ReSharper disable once CppUseStructuredBinding
     auto [instructions, labels_addresses, errors] = ParseSource(source);
@@ -64,9 +64,9 @@ std::pair<common::ByteCode, common::SourceToBytecodeMap> Assembler::CompileInter
             }
         }
 
-        common::Byte instruction_byte_code = common::InstructionByte(instruction.opcode,
-                                                                     instruction.type_modifier,
-                                                                     instruction.argument_modifier);
+        snm::Byte instruction_byte_code = snm::InstructionByte(instruction.opcode,
+                                                               instruction.type_modifier,
+                                                               instruction.argument_modifier);
 
         byte_code.push_back(instruction_byte_code);
 
@@ -187,18 +187,18 @@ Instruction Assembler::GetInstruction(const std::string& line) {
         auto token_upper = ToUpper(token);
         if (type_modifier_map_.contains(token_upper)) {
             auto type_modifier = type_modifier_map_[token_upper];
-            if (common::OPCODE_PROPERTIES.at(result.opcode).allowed_type_modifiers.contains(type_modifier)) {
+            if (snm::OPCODE_PROPERTIES.at(result.opcode).allowed_type_modifiers.contains(type_modifier)) {
                 result.type_modifier = type_modifier;
             } else {
                 throw Exception<std::domain_error>(
                     std::format("Modifier {} cannot be used", token));
             }
         } else {
-            const auto& properties = common::OPCODE_PROPERTIES.at(result.opcode);
-            if (properties.allowed_type_modifiers.contains(common::TypeModifier::SW)) {
-                result.type_modifier = common::TypeModifier::SW;
+            const auto& properties = snm::OPCODE_PROPERTIES.at(result.opcode);
+            if (properties.allowed_type_modifiers.contains(snm::TypeModifier::SW)) {
+                result.type_modifier = snm::TypeModifier::SW;
             } else {
-                result.type_modifier = common::TypeModifier::W;
+                result.type_modifier = snm::TypeModifier::W;
             }
             stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
         }
@@ -209,7 +209,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
         auto token_upper = ToUpper(token);
         if (arg_modifier_map_.contains(token_upper)) {
             auto argument_modifier = arg_modifier_map_[token_upper];
-            if (common::OPCODE_PROPERTIES.at(result.opcode).allowed_arg_modifiers.contains(argument_modifier)) {
+            if (snm::OPCODE_PROPERTIES.at(result.opcode).allowed_arg_modifiers.contains(argument_modifier)) {
                 result.argument_modifier = argument_modifier;
             } else {
                 throw Exception<std::domain_error>(
@@ -221,7 +221,7 @@ Instruction Assembler::GetInstruction(const std::string& line) {
     }
 
     // Чтение аргумента
-    if (common::OPCODE_PROPERTIES.at(result.opcode).is_argument_available
+    if (snm::OPCODE_PROPERTIES.at(result.opcode).is_argument_available
         && stream >> token) {
 
         if (token == "'") {
@@ -359,59 +359,63 @@ bool Assembler::IsValidChar(const std::string& token) {
     return true;
 }
 
-bool Assembler::IsNumberValidForType(const common::Bytes bytes, const common::TypeModifier type_modifier) {
+bool Assembler::IsNumberValidForType(const snm::Bytes bytes, const snm::TypeModifier type_modifier) {
     switch (type_modifier) {
-    case common::TypeModifier::C: {
+    case snm::TypeModifier::C:
+    {
         const auto value = static_cast<uint64_t>(bytes);
-        return value >= std::numeric_limits<common::Byte>::min() && value <= std::numeric_limits<common::Byte>::max();
+        return value >= std::numeric_limits<snm::Byte>::min() && value <= std::numeric_limits<snm::Byte>::max();
     }
-    case common::TypeModifier::W: {
+    case snm::TypeModifier::W:
+    {
         const auto value = static_cast<uint64_t>(bytes);
-        return value >= std::numeric_limits<common::Word>::min() && value <= std::numeric_limits<common::Word>::max();
+        return value >= std::numeric_limits<snm::Word>::min() && value <= std::numeric_limits<snm::Word>::max();
     }
-    case common::TypeModifier::SW: {
+    case snm::TypeModifier::SW:
+    {
         const auto value = static_cast<int64_t>(bytes);
-        return value >= std::numeric_limits<common::SignedWord>::min() && value <= std::numeric_limits<common::SignedWord>::max();
+        return value >= std::numeric_limits<snm::SignedWord>::min() && value <= std::numeric_limits<
+            snm::SignedWord>::max();
     }
-    case common::TypeModifier::R: {
+    case snm::TypeModifier::R: {
         const auto value = static_cast<double>(bytes);
-        return value >= std::numeric_limits<common::Real>::min() && value <= std::numeric_limits<common::Real>::max();
+        return value >= std::numeric_limits<snm::Real>::min() && value <= std::numeric_limits<snm::Real>::max();
     }
     default:
         return false;
     }
 }
 
-common::Bytes Assembler::ParseNumber(const std::string& str, const common::TypeModifier& type_modifier) {
+snm::Bytes Assembler::ParseNumber(const std::string& str, const snm::TypeModifier& type_modifier) {
     ValidateStringNumber(str);
 
-    common::Bytes result;
+    snm::Bytes result;
 
     if (str.starts_with("0b")) {
         std::string binary_string = str.substr(2); // Убираем "0b"
-        if (binary_string.size() > common::ARGUMENT_SIZE * 8) {
+        if (binary_string.size() > snm::ARGUMENT_SIZE * 8) {
             throw Exception<std::out_of_range>(
-                std::format("Binary string {} is too long (max {} bits)", str, std::to_string(common::ARGUMENT_SIZE * 8)));
+                std::format("Binary string {} is too long (max {} bits)", str, std::to_string(snm::ARGUMENT_SIZE * 8)));
         }
 
         // Дополняем строку нулями слева
-        binary_string.insert(binary_string.begin(), common::ARGUMENT_SIZE * 8 - binary_string.size(), '0');
-        const std::bitset<common::ARGUMENT_SIZE * 8> bits(binary_string);
+        binary_string.insert(binary_string.begin(), snm::ARGUMENT_SIZE * 8 - binary_string.size(), '0');
+        const std::bitset<snm::ARGUMENT_SIZE * 8> bits(binary_string);
         const uint32_t num = bits.to_ulong();
 
-        for (size_t i = 0; i < common::ARGUMENT_SIZE; ++i) {
+        for (size_t i = 0; i < snm::ARGUMENT_SIZE; ++i) {
             result[i] = static_cast<uint8_t>(num >> (8 * i) & 0xFF);
         }
     } else if (str.starts_with("0x")) {
         // Обработка шестнадцатеричной строки
         std::string hex_string = str.substr(2); // Убираем "0x"
-        if (hex_string.size() > common::ARGUMENT_SIZE * 2) {
+        if (hex_string.size() > snm::ARGUMENT_SIZE * 2) {
             throw Exception<std::out_of_range>(
-                std::format("Hex string {} is too long (max {} nibbles)", str, std::to_string(common::ARGUMENT_SIZE * 2)));
+                std::format("Hex string {} is too long (max {} nibbles)", str, std::to_string(snm::ARGUMENT_SIZE * 2)));
         }
 
         // Дополняем строку нулями слева
-        hex_string.insert(hex_string.begin(), common::ARGUMENT_SIZE * 2 - hex_string.size(),
+        hex_string.insert(hex_string.begin(), snm::ARGUMENT_SIZE * 2 - hex_string.size(),
                           '0');
 
         // Преобразуем шестнадцатеричную строку в число
@@ -420,10 +424,10 @@ common::Bytes Assembler::ParseNumber(const std::string& str, const common::TypeM
         ss << std::hex << hex_string;
         ss >> num;
 
-        for (size_t i = 0; i < common::ARGUMENT_SIZE; ++i) {
+        for (size_t i = 0; i < snm::ARGUMENT_SIZE; ++i) {
             result[i] = static_cast<uint8_t>(num >> (8 * i) & 0xFF);
         }
-    } else if (type_modifier == common::TypeModifier::R) {
+    } else if (type_modifier == snm::TypeModifier::R) {
         // Число с плавающей запятой
         result = std::stof(str);
     } else {

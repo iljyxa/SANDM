@@ -2,10 +2,9 @@
 #define CONSOLE_HPP
 
 #include <QKeyEvent>
+#include <QMenu>
 #include <QTextCursor>
 #include <QTextEdit>
-#include <QMenu>
-#include <QContextMenuEvent>
 
 class Console final : public QTextEdit {
     Q_OBJECT
@@ -103,8 +102,8 @@ protected:
     void contextMenuEvent(QContextMenuEvent *event) override {
         QMenu *menu = createStandardContextMenu();
         menu->addSeparator();
-        QAction *clearAction = menu->addAction("Clear");
-        connect(clearAction, &QAction::triggered, this, &Console::clear);
+        const QAction* clear_action = menu->addAction("Clear");
+        connect(clear_action, &QAction::triggered, this, &Console::clear);
         menu->exec(event->globalPos());
         delete menu;
     }

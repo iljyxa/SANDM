@@ -6,6 +6,14 @@
 #include "core/processor.hpp"
 #include "core/processor_io.hpp"
 
+/**
+ * @class VirtualMachine
+ * @brief Класс представляет виртуальную машину для выполнения программ.
+ *
+ * VirtualMachine предоставляет функциональность для загрузки, выполнения
+ * программ и управления их состоянием. Виртуальная машина может интерпретировать
+ * команды, управлять памятью и обрабатывать исключения.
+ */
 class VirtualMachine : public ProcessorIo {
 public:
     explicit VirtualMachine(ProcessorIo* processor_io = nullptr);
@@ -18,9 +26,9 @@ public:
     VirtualMachine(VirtualMachine&&) = default;
     VirtualMachine& operator=(VirtualMachine&&) = default;
 
-    virtual void Load(const common::ByteCode& byte_code);
-    [[nodiscard]] virtual common::Bytes ReadMemory(const common::Byte& address);
-    virtual void WriteMemory(const common::Byte& address, const common::Bytes& data);
+    virtual void Load(const snm::ByteCode& byte_code);
+    [[nodiscard]] virtual snm::Bytes ReadMemory(const snm::DoubleByte& address);
+    virtual void WriteMemory(const snm::DoubleByte& address, const snm::Bytes& data);
 
     virtual void Run();
     virtual void Stop();
@@ -30,24 +38,24 @@ public:
     [[nodiscard]] virtual bool IsRunning();
     [[nodiscard]] virtual Registers GetRegisters();
 
-    virtual void SetInstructionPointer(common::DoubleByte value);
-    virtual void SetAccumulator(common::Byte value);
-    virtual void SetAccumulator(common::Word value);
-    virtual void SetAccumulator(common::SignedWord value);
-    virtual void SetAccumulator(common::Real value);
-    virtual void SetAuxiliary(common::Byte value);
-    virtual void SetAuxiliary(common::Word value);
-    virtual void SetAuxiliary(common::SignedWord value);
-    virtual void SetAuxiliary(common::Real value);
+    virtual void SetInstructionPointer(snm::DoubleByte value);
+    virtual void SetAccumulator(snm::Byte value);
+    virtual void SetAccumulator(snm::Word value);
+    virtual void SetAccumulator(snm::SignedWord value);
+    virtual void SetAccumulator(snm::Real value);
+    virtual void SetAuxiliary(snm::Byte value);
+    virtual void SetAuxiliary(snm::Word value);
+    virtual void SetAuxiliary(snm::SignedWord value);
+    virtual void SetAuxiliary(snm::Real value);
 
     void SetProcessorObserver(ProcessorObserver* observer) const;
     void SetProcessorIo(ProcessorIo* processor_io) const;
 
-    void Output(common::Bytes& bytes, common::Type& type) override;
-    void InputAsync(common::Type type, InputCallback callback) override;
+    void Output(snm::Bytes& bytes, snm::Type& type) override;
+    void InputAsync(snm::Type type, InputCallback callback) override;
 
-    static std::string BytesToString(const common::Bytes& bytes, const common::Type& type);
-    static common::Bytes BytesFromString(const std::string& string, const common::Type& type);
+    static std::string BytesToString(const snm::Bytes& bytes, const snm::Type& type);
+    static snm::Bytes BytesFromString(const std::string& string, const snm::Type& type);
 
 protected:
     std::unique_ptr<MemoryManager> memory_manager_;

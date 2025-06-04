@@ -5,6 +5,7 @@ qt_add_library(gui STATIC
         include/gui/console.hpp
         include/gui/syntax_highlighter.hpp
         include/gui/hex_spin_box.hpp
+        include/gui/spin_box_hoverable.hpp
         include/gui/memory_model.hpp
         include/gui/memory_view.hpp
         include/gui/virtual_machine_controller.hpp src/virtual_machine_controller.cpp

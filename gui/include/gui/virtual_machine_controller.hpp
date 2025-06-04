@@ -41,7 +41,7 @@ public:
      * @param byte_code Байт-код для загрузки.
      * @param source_to_bytecode_map Карта соответствия исходного кода байт-коду.
      */
-    void Load(const common::ByteCode& byte_code, common::SourceToBytecodeMap& source_to_bytecode_map);
+    void Load(const snm::ByteCode& byte_code, snm::SourceToBytecodeMap& source_to_bytecode_map);
     /**
      * @brief Возвращает текущее состояние виртуальной машины.
      * @return Текущее состояние VmState.
@@ -59,11 +59,11 @@ public:
 
     // === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
-    void OnMemoryChanged(const common::DoubleByte& address) override;
+    void OnMemoryChanged(const snm::DoubleByte& address) override;
     void OnStatusChanged(bool& is_running) override;
-    void OnRegisterAccChanged(const common::Bytes& accumulator) override;
-    void OnRegisterAuxChanged(const common::Bytes& auxiliary) override;
-    void OnRegisterIpChanged(const common::DoubleByte& instruction_pointer) override;
+    void OnRegisterAccChanged(const snm::Bytes& accumulator) override;
+    void OnRegisterAuxChanged(const snm::Bytes& auxiliary) override;
+    void OnRegisterIpChanged(const snm::DoubleByte& instruction_pointer) override;
 
 public slots:
     // === Управление состоянием машины ===
@@ -151,10 +151,10 @@ signals:
 private:
     VmState state_; ///< Текущее состояние
     bool debugging_; ///< Признак работы в режиме отладки
-    QSet<common::DoubleByte> breakpoints_; ///< Точки останова для байт-кода
+    QSet<snm::DoubleByte> breakpoints_; ///< Точки останова для байт-кода
     QSet<unsigned int> source_breakpoints_; ///< Точки останова для исходного кода
-    common::SourceToBytecodeMap source_to_bytecode_map_; ///< Карта соответствия исходного кода байт-коду
-    common::BytecodeToSourceMap bytecode_to_source_map_; ///< Карта соответствия байт-кода исходному коду
+    snm::SourceToBytecodeMap source_to_bytecode_map_; ///< Карта соответствия исходного кода байт-коду
+    snm::BytecodeToSourceMap bytecode_to_source_map_; ///< Карта соответствия байт-кода исходному коду
 
     /**
      * @brief Устанавливает новое состояние виртуальной машины.

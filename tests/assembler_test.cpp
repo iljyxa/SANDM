@@ -6,172 +6,171 @@
 #include "../core/include/core/common_definitions.hpp"
 
 struct TestParams {
-    common::OpCode opcode;
-    common::ArgModifier arg_modifier;
-    common::TypeModifier type_modifier;
+    snm::OpCode opcode;
+    snm::ArgModifier arg_modifier;
+    snm::TypeModifier type_modifier;
 };
 
-const std::vector<TestParams> test_combinations = {
+const std::vector<TestParams> TEST_COMBINATIONS = {
     // NOPE combinations
-    {common::OpCode::NOPE, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::NOPE, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::NOPE, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::NOPE, common::ArgModifier::NONE, common::TypeModifier::R},
+    {snm::OpCode::NOPE, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::NOPE, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::NOPE, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::NOPE, snm::ArgModifier::NONE, snm::TypeModifier::R},
 
     // ADD combinations
-    {common::OpCode::ADD, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::ADD, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::ADD, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::ADD, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::ADD, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::ADD, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::ADD, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::ADD, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::ADD, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::ADD, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::ADD, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::ADD, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    {snm::OpCode::ADD, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::ADD, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::ADD, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::ADD, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::ADD, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::ADD, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::ADD, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::ADD, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::ADD, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::ADD, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::ADD, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::ADD, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
-    // SUB combinations 
-    {common::OpCode::SUB, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::SUB, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::SUB, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::SUB, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::SUB, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::SUB, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::SUB, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::SUB, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::SUB, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::SUB, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::SUB, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::SUB, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    // SUB combinations
+    {snm::OpCode::SUB, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::SUB, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::SUB, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::SUB, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::SUB, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::SUB, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::SUB, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::SUB, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::SUB, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::SUB, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::SUB, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::SUB, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
     // MUL combinations
-    {common::OpCode::MUL, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::MUL, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::MUL, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::MUL, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::MUL, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::MUL, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::MUL, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::MUL, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::MUL, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::MUL, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::MUL, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::MUL, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    {snm::OpCode::MUL, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::MUL, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::MUL, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::MUL, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::MUL, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::MUL, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::MUL, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::MUL, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::MUL, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::MUL, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::MUL, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::MUL, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
     // DIV combinations
-    {common::OpCode::DIV, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::DIV, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::DIV, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::DIV, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::DIV, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::DIV, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::DIV, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::DIV, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::DIV, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::DIV, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::DIV, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::DIV, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    {snm::OpCode::DIV, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::DIV, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::DIV, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::DIV, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::DIV, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::DIV, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::DIV, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::DIV, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::DIV, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::DIV, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::DIV, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::DIV, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
     // MOD combinations
-    {common::OpCode::MOD, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::MOD, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::MOD, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::MOD, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::MOD, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::MOD, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::MOD, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::MOD, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::MOD, common::ArgModifier::REF_REF, common::TypeModifier::SW},
+    {snm::OpCode::MOD, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::MOD, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::MOD, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::MOD, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::MOD, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::MOD, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::MOD, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::MOD, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::MOD, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
 
     // LOAD combinations
-    {common::OpCode::LOAD, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::LOAD, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::LOAD, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::LOAD, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::LOAD, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::LOAD, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::LOAD, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::LOAD, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::LOAD, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::LOAD, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::LOAD, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::LOAD, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    {snm::OpCode::LOAD, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::LOAD, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::LOAD, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::LOAD, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::LOAD, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
     // STORE combinations
-    {common::OpCode::STORE, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::STORE, common::ArgModifier::REF, common::TypeModifier::W},
+    {snm::OpCode::STORE, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::STORE, snm::ArgModifier::REF, snm::TypeModifier::W},
 
     // INPUT combinations
-    {common::OpCode::INPUT, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::INPUT, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::INPUT, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::INPUT, common::ArgModifier::NONE, common::TypeModifier::R},
+    {snm::OpCode::INPUT, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::INPUT, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::INPUT, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::INPUT, snm::ArgModifier::NONE, snm::TypeModifier::R},
 
     // OUTPUT combinations
-    {common::OpCode::OUTPUT, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::OUTPUT, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::OUTPUT, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::OUTPUT, common::ArgModifier::NONE, common::TypeModifier::R},
+    {snm::OpCode::OUTPUT, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::OUTPUT, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::OUTPUT, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::OUTPUT, snm::ArgModifier::NONE, snm::TypeModifier::R},
 
     // JUMP combinations
-    {common::OpCode::JUMP, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::JUMP, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::JUMP, common::ArgModifier::REF_REF, common::TypeModifier::W},
+    {snm::OpCode::JUMP, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::JUMP, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::JUMP, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
 
     // SKIP_LOWER combinations
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::SKIP_LOWER, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_LOWER, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
     // SKIP_GREATER combinations
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::SKIP_GREATER, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_GREATER, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
     // SKIP_EQUAL combinations
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::NONE, common::TypeModifier::C},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::NONE, common::TypeModifier::SW},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::NONE, common::TypeModifier::R},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF, common::TypeModifier::C},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF, common::TypeModifier::SW},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF, common::TypeModifier::R},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF_REF, common::TypeModifier::C},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF_REF, common::TypeModifier::W},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF_REF, common::TypeModifier::SW},
-    {common::OpCode::SKIP_EQUAL, common::ArgModifier::REF_REF, common::TypeModifier::R},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::NONE, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::NONE, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::NONE, snm::TypeModifier::R},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF, snm::TypeModifier::R},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF_REF, snm::TypeModifier::C},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF_REF, snm::TypeModifier::W},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF_REF, snm::TypeModifier::SW},
+    {snm::OpCode::SKIP_EQUAL, snm::ArgModifier::REF_REF, snm::TypeModifier::R},
 
     // JUMPNSTORE combinations
-    {common::OpCode::JUMPNSTORE, common::ArgModifier::NONE, common::TypeModifier::W},
-    {common::OpCode::JUMPNSTORE, common::ArgModifier::REF, common::TypeModifier::W},
-    {common::OpCode::JUMPNSTORE, common::ArgModifier::REF_REF, common::TypeModifier::W}
+    {snm::OpCode::JUMPNSTORE, snm::ArgModifier::NONE, snm::TypeModifier::W},
+    {snm::OpCode::JUMPNSTORE, snm::ArgModifier::REF, snm::TypeModifier::W},
+    {snm::OpCode::JUMPNSTORE, snm::ArgModifier::REF_REF, snm::TypeModifier::W}
 };
 
-class ParamAssemblerTest : public ::testing::Test, public ::testing::WithParamInterface<TestParams> {
+class ParamAssemblerTest : public testing::Test, public testing::WithParamInterface<TestParams> {
 public:
-
-    common::ByteCode Compile(const std::string& source) {
+    [[nodiscard]] snm::ByteCode Compile(const std::string& source) const {
         return assembler_->Compile(source);
     }
 
@@ -185,10 +184,9 @@ protected:
     std::unique_ptr<Assembler> assembler_;
 };
 
-class AssemblerTest : public ::testing::Test {
+class AssemblerTest : public testing::Test {
 public:
-
-    common::ByteCode Compile(const std::string& source) {
+    [[nodiscard]] snm::ByteCode Compile(const std::string& source) const {
         return assembler_->Compile(source);
     }
 
@@ -202,37 +200,37 @@ protected:
     std::unique_ptr<Assembler> assembler_;
 };
 
-std::string OpCodeToString(common::OpCode opcode) {
+std::string OpCodeToString(const snm::OpCode opcode) {
     switch (opcode) {
-    case common::OpCode::ADD:
+    case snm::OpCode::ADD:
         return "Add";
-    case common::OpCode::SUB:
+    case snm::OpCode::SUB:
         return "Sub";
-    case common::OpCode::MUL:
+    case snm::OpCode::MUL:
         return "Mul";
-    case common::OpCode::DIV:
+    case snm::OpCode::DIV:
         return "Div";
-    case common::OpCode::MOD:
+    case snm::OpCode::MOD:
         return "Mod";
-    case common::OpCode::LOAD:
+    case snm::OpCode::LOAD:
         return "Load";
-    case common::OpCode::STORE:
+    case snm::OpCode::STORE:
         return "Store";
-    case common::OpCode::INPUT:
+    case snm::OpCode::INPUT:
         return "Input";
-    case common::OpCode::OUTPUT:
+    case snm::OpCode::OUTPUT:
         return "Output";
-    case common::OpCode::JUMP:
+    case snm::OpCode::JUMP:
         return "Jump";
-    case common::OpCode::SKIP_LOWER:
+    case snm::OpCode::SKIP_LOWER:
         return "SkipLo";
-    case common::OpCode::SKIP_GREATER:
+    case snm::OpCode::SKIP_GREATER:
         return "SkipGt";
-    case common::OpCode::SKIP_EQUAL:
+    case snm::OpCode::SKIP_EQUAL:
         return "SkipEq";
-    case common::OpCode::JUMPNSTORE:
+    case snm::OpCode::JUMPNSTORE:
         return "JnS";
-    case common::OpCode::NOPE:
+    case snm::OpCode::NOPE:
         return "Nope";
 
     default:
@@ -240,41 +238,41 @@ std::string OpCodeToString(common::OpCode opcode) {
     }
 }
 
-std::string ArgModifierToString(common::ArgModifier mod) {
+std::string ArgModifierToString(const snm::ArgModifier mod) {
     switch (mod) {
-    case common::ArgModifier::NONE:
+    case snm::ArgModifier::NONE:
         return "None";
-    case common::ArgModifier::REF:
+    case snm::ArgModifier::REF:
         return "REF";
-    case common::ArgModifier::REF_REF:
+    case snm::ArgModifier::REF_REF:
         return "REF_REF";
     default:
         return "Unknown";
     }
 }
 
-std::string ArgModifierToStringSource(common::ArgModifier mod) {
+std::string ArgModifierToStringSource(const snm::ArgModifier mod) {
     switch (mod) {
-    case common::ArgModifier::NONE:
+    case snm::ArgModifier::NONE:
         return "";
-    case common::ArgModifier::REF:
+    case snm::ArgModifier::REF:
         return "&";
-    case common::ArgModifier::REF_REF:
+    case snm::ArgModifier::REF_REF:
         return "&&";
     default:
         return "Unknown";
     }
 }
 
-std::string TypeModifierToString(common::TypeModifier mod) {
+std::string TypeModifierToString(const snm::TypeModifier mod) {
     switch (mod) {
-    case common::TypeModifier::C:
+    case snm::TypeModifier::C:
         return "C";
-    case common::TypeModifier::W:
+    case snm::TypeModifier::W:
         return "W";
-    case common::TypeModifier::SW:
+    case snm::TypeModifier::SW:
         return "SW";
-    case common::TypeModifier::R:
+    case snm::TypeModifier::R:
         return "R";
     default:
         return "Unknown";
@@ -284,7 +282,7 @@ std::string TypeModifierToString(common::TypeModifier mod) {
 INSTANTIATE_TEST_SUITE_P(
     AllCombinationsCommand,
     ParamAssemblerTest,
-    ::testing::ValuesIn(test_combinations),
+    ::testing::ValuesIn(TEST_COMBINATIONS),
     [](const testing::TestParamInfo<TestParams>& info) {
         return std::string(OpCodeToString(info.param.opcode)) + "_" +
                ArgModifierToString(info.param.arg_modifier) + "_" +
@@ -298,7 +296,7 @@ TEST_F(AssemblerTest, EmptySource) {
 }
 
 TEST_F(AssemblerTest, CompileSimpleProgram) {
-    std::string source = R"(
+    const std::string source = R"(
         string_hello_world: 'H'
         'e'
         'l'
@@ -353,23 +351,25 @@ TEST_F(AssemblerTest, CompileSimpleProgram) {
         end:
     )";
 
-    common::ByteCode result = Compile(source);
+    const snm::ByteCode result = Compile(source);
 
     ASSERT_FALSE(result.empty());
     EXPECT_EQ(result.size(), 190);
 }
 
 TEST_P(ParamAssemblerTest, TestSourceCodeToByteCode) {
-    const auto params = GetParam();
+    const auto [opcode, arg_modifier, type_modifier] = GetParam();
     std::string instruction;
-    if (common::OPCODE_PROPERTIES.at(params.opcode).is_argument_available) {
-        instruction = std::format("{} {} {} {}", OpCodeToString(params.opcode), TypeModifierToString(params.type_modifier), ArgModifierToStringSource(params.arg_modifier), 123);
+    if (snm::OPCODE_PROPERTIES.at(opcode).is_argument_available) {
+        instruction = std::format("{} {} {} {}", OpCodeToString(opcode), TypeModifierToString(type_modifier),
+                                  ArgModifierToStringSource(arg_modifier), 123);
     } else {
-        instruction = std::format("{} {} {}", OpCodeToString(params.opcode), ArgModifierToStringSource(params.arg_modifier), TypeModifierToString(params.type_modifier));
+        instruction = std::format("{} {} {}", OpCodeToString(opcode), ArgModifierToStringSource(arg_modifier),
+                                  TypeModifierToString(type_modifier));
     }
 
-    common::Byte target_byte_code = common::InstructionByte(params.opcode, params.type_modifier, params.arg_modifier);
-    const common::ByteCode result_byte_code = Compile(instruction);
+    const snm::Byte target_byte_code = snm::InstructionByte(opcode, type_modifier, arg_modifier);
+    const snm::ByteCode result_byte_code = Compile(instruction);
     ASSERT_EQ(result_byte_code.size(), 5);
     EXPECT_EQ(result_byte_code[0], target_byte_code);
 }

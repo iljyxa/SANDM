@@ -5,189 +5,188 @@ Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, Process
     observer_(observer),
     io_(io),
     is_running_(false) {
-
-    argument_modifiers_[static_cast<uint8_t>(common::ArgModifier::NONE)] = common::ArgModifier::NONE;
-    argument_modifiers_[static_cast<uint8_t>(common::ArgModifier::REF)] = common::ArgModifier::REF;
-    argument_modifiers_[static_cast<uint8_t>(common::ArgModifier::REF_REF)] = common::ArgModifier::REF_REF;
+    argument_modifiers_[static_cast<uint8_t>(snm::ArgModifier::NONE)] = snm::ArgModifier::NONE;
+    argument_modifiers_[static_cast<uint8_t>(snm::ArgModifier::REF)] = snm::ArgModifier::REF;
+    argument_modifiers_[static_cast<uint8_t>(snm::ArgModifier::REF_REF)] = snm::ArgModifier::REF_REF;
 
     // nope
-    instructions_handlers_[InstructionByte(common::OpCode::NOPE, common::TypeModifier::C)] = [this] {
+    instructions_handlers_[InstructionByte(snm::OpCode::NOPE, snm::TypeModifier::C)] = [this] {
         Nope();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::NOPE, common::TypeModifier::W)] = [this] {
+    instructions_handlers_[InstructionByte(snm::OpCode::NOPE, snm::TypeModifier::W)] = [this] {
         Nope();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::NOPE, common::TypeModifier::SW)] = [this] {
+    instructions_handlers_[InstructionByte(snm::OpCode::NOPE, snm::TypeModifier::SW)] = [this] {
         Nope();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::NOPE, common::TypeModifier::R)] = [this] {
+    instructions_handlers_[InstructionByte(snm::OpCode::NOPE, snm::TypeModifier::R)] = [this] {
         Nope();
     };
 
 
     // add
-    instructions_handlers_[InstructionByte(common::OpCode::ADD, common::TypeModifier::C)] = [this] {
-        Add<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::ADD, snm::TypeModifier::C)] = [this] {
+        Add<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::ADD, common::TypeModifier::W)] = [this] {
-        Add<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::ADD, snm::TypeModifier::W)] = [this] {
+        Add<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::ADD, common::TypeModifier::SW)] = [this] {
-        Add<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::ADD, snm::TypeModifier::SW)] = [this] {
+        Add<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::ADD, common::TypeModifier::R)] = [this] {
-        Add<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::ADD, snm::TypeModifier::R)] = [this] {
+        Add<snm::Real>();
     };
 
     // sub
-    instructions_handlers_[InstructionByte(common::OpCode::SUB, common::TypeModifier::C)] = [this] {
-        Sub<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SUB, snm::TypeModifier::C)] = [this] {
+        Sub<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SUB, common::TypeModifier::W)] = [this] {
-        Sub<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SUB, snm::TypeModifier::W)] = [this] {
+        Sub<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SUB, common::TypeModifier::SW)] = [this] {
-        Sub<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SUB, snm::TypeModifier::SW)] = [this] {
+        Sub<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SUB, common::TypeModifier::R)] = [this] {
-        Sub<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SUB, snm::TypeModifier::R)] = [this] {
+        Sub<snm::Real>();
     };
 
     // mul
-    instructions_handlers_[InstructionByte(common::OpCode::MUL, common::TypeModifier::C)] = [this] {
-        Mul<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::MUL, snm::TypeModifier::C)] = [this] {
+        Mul<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::MUL, common::TypeModifier::W)] = [this] {
-        Mul<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::MUL, snm::TypeModifier::W)] = [this] {
+        Mul<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::MUL, common::TypeModifier::SW)] = [this] {
-        Mul<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::MUL, snm::TypeModifier::SW)] = [this] {
+        Mul<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::MUL, common::TypeModifier::R)] = [this] {
-        Mul<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::MUL, snm::TypeModifier::R)] = [this] {
+        Mul<snm::Real>();
     };
 
     // div
-    instructions_handlers_[InstructionByte(common::OpCode::DIV, common::TypeModifier::C)] = [this] {
-        Div<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::DIV, snm::TypeModifier::C)] = [this] {
+        Div<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::DIV, common::TypeModifier::W)] = [this] {
-        Div<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::DIV, snm::TypeModifier::W)] = [this] {
+        Div<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::DIV, common::TypeModifier::SW)] = [this] {
-        Div<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::DIV, snm::TypeModifier::SW)] = [this] {
+        Div<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::DIV, common::TypeModifier::R)] = [this] {
-        Div<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::DIV, snm::TypeModifier::R)] = [this] {
+        Div<snm::Real>();
     };
 
     // mod
-    instructions_handlers_[InstructionByte(common::OpCode::MOD, common::TypeModifier::C)] = [this] {
-        Mod<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::MOD, snm::TypeModifier::C)] = [this] {
+        Mod<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::MOD, common::TypeModifier::W)] = [this] {
-        Mod<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::MOD, snm::TypeModifier::W)] = [this] {
+        Mod<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::MOD, common::TypeModifier::SW)] = [this] {
-        Mod<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::MOD, snm::TypeModifier::SW)] = [this] {
+        Mod<snm::SignedWord>();
     };
 
     // load
-    instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::C)] = [this] {
-        Load<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::LOAD, snm::TypeModifier::C)] = [this] {
+        Load<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::W)] = [this] {
-        Load<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::LOAD, snm::TypeModifier::W)] = [this] {
+        Load<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::SW)] = [this] {
-        Load<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::LOAD, snm::TypeModifier::SW)] = [this] {
+        Load<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::LOAD, common::TypeModifier::R)] = [this] {
-        Load<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::LOAD, snm::TypeModifier::R)] = [this] {
+        Load<snm::Real>();
     };
 
     // store
-    instructions_handlers_[InstructionByte(common::OpCode::STORE, common::TypeModifier::W)] = [this] {
+    instructions_handlers_[InstructionByte(snm::OpCode::STORE, snm::TypeModifier::W)] = [this] {
         Store();
     };
 
     // input
-    instructions_handlers_[InstructionByte(common::OpCode::INPUT, common::TypeModifier::C)] = [this] {
-        Input<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::INPUT, snm::TypeModifier::C)] = [this] {
+        Input<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::INPUT, common::TypeModifier::W)] = [this] {
-        Input<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::INPUT, snm::TypeModifier::W)] = [this] {
+        Input<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::INPUT, common::TypeModifier::SW)] = [this] {
-        Input<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::INPUT, snm::TypeModifier::SW)] = [this] {
+        Input<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::INPUT, common::TypeModifier::R)] = [this] {
-        Input<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::INPUT, snm::TypeModifier::R)] = [this] {
+        Input<snm::Real>();
     };
 
     // output
-    instructions_handlers_[InstructionByte(common::OpCode::OUTPUT, common::TypeModifier::C)] = [this] {
-        Output<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::OUTPUT, snm::TypeModifier::C)] = [this] {
+        Output<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::OUTPUT, common::TypeModifier::W)] = [this] {
-        Output<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::OUTPUT, snm::TypeModifier::W)] = [this] {
+        Output<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::OUTPUT, common::TypeModifier::SW)] = [this] {
-        Output<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::OUTPUT, snm::TypeModifier::SW)] = [this] {
+        Output<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::OUTPUT, common::TypeModifier::R)] = [this] {
-        Output<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::OUTPUT, snm::TypeModifier::R)] = [this] {
+        Output<snm::Real>();
     };
 
     // jump
-    instructions_handlers_[InstructionByte(common::OpCode::JUMP, common::TypeModifier::W)] = [this] {
+    instructions_handlers_[InstructionByte(snm::OpCode::JUMP, snm::TypeModifier::W)] = [this] {
         Jump();
     };
 
     // skiplower
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_LOWER, common::TypeModifier::C)] = [this] {
-        SkipLower<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_LOWER, snm::TypeModifier::C)] = [this] {
+        SkipLower<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_LOWER, common::TypeModifier::W)] = [this] {
-        SkipLower<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_LOWER, snm::TypeModifier::W)] = [this] {
+        SkipLower<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_LOWER, common::TypeModifier::SW)] = [this] {
-        SkipLower<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_LOWER, snm::TypeModifier::SW)] = [this] {
+        SkipLower<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_LOWER, common::TypeModifier::R)] = [this] {
-        SkipLower<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_LOWER, snm::TypeModifier::R)] = [this] {
+        SkipLower<snm::Real>();
     };
 
     // skipgreater
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_GREATER, common::TypeModifier::C)] = [this] {
-        SkipGreater<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_GREATER, snm::TypeModifier::C)] = [this] {
+        SkipGreater<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_GREATER, common::TypeModifier::W)] = [this] {
-        SkipGreater<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_GREATER, snm::TypeModifier::W)] = [this] {
+        SkipGreater<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_GREATER, common::TypeModifier::SW)] = [this] {
-        SkipGreater<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_GREATER, snm::TypeModifier::SW)] = [this] {
+        SkipGreater<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_GREATER, common::TypeModifier::R)] = [this] {
-        SkipGreater<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_GREATER, snm::TypeModifier::R)] = [this] {
+        SkipGreater<snm::Real>();
     };
 
     // skipequal
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_EQUAL, common::TypeModifier::C)] = [this] {
-        SkipEqual<common::Byte>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_EQUAL, snm::TypeModifier::C)] = [this] {
+        SkipEqual<snm::Byte>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_EQUAL, common::TypeModifier::W)] = [this] {
-        SkipEqual<common::Word>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_EQUAL, snm::TypeModifier::W)] = [this] {
+        SkipEqual<snm::Word>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_EQUAL, common::TypeModifier::SW)] = [this] {
-        SkipEqual<common::SignedWord>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_EQUAL, snm::TypeModifier::SW)] = [this] {
+        SkipEqual<snm::SignedWord>();
     };
-    instructions_handlers_[InstructionByte(common::OpCode::SKIP_EQUAL, common::TypeModifier::R)] = [this] {
-        SkipEqual<common::Real>();
+    instructions_handlers_[InstructionByte(snm::OpCode::SKIP_EQUAL, snm::TypeModifier::R)] = [this] {
+        SkipEqual<snm::Real>();
     };
 
     // JnS
-    instructions_handlers_[InstructionByte(common::OpCode::JUMPNSTORE, common::TypeModifier::W)] = [this] {
+    instructions_handlers_[InstructionByte(snm::OpCode::JUMPNSTORE, snm::TypeModifier::W)] = [this] {
         JumpAndStore();
     };
 
@@ -241,19 +240,19 @@ void Processor::SetIo(ProcessorIo* io) {
     io_ = io;
 }
 
-const common::Bytes& Processor::GetAccumulator() const {
+const snm::Bytes& Processor::GetAccumulator() const {
     return registers_.accumulator;
 }
 
-const common::Bytes& Processor::GetAuxiliary() const {
+const snm::Bytes& Processor::GetAuxiliary() const {
     return registers_.auxiliary;
 }
 
-const common::DoubleByte& Processor::GetInstructionPointer() const {
+const snm::DoubleByte& Processor::GetInstructionPointer() const {
     return registers_.instruction_pointer;
 }
 
-void Processor::SetInstructionPointer(const common::DoubleByte value) {
+void Processor::SetInstructionPointer(const snm::DoubleByte value) {
     registers_.instruction_pointer = value;
 
     if (observer_) {
@@ -270,8 +269,8 @@ const bool& Processor::IsRunning() const {
 }
 
 void Processor::ExecuteInstruction() {
-    common::Byte code;
-    common::Bytes argument;
+    snm::Byte code;
+    snm::Bytes argument;
 
     try {
         std::tie(code, argument) = memory_.ReadInstruction(registers_.instruction_pointer);
@@ -280,13 +279,14 @@ void Processor::ExecuteInstruction() {
         return;
     }
 
-    const common::Byte handler = code & 0b11111100;
-    const common::ArgModifier arg_modifier = argument_modifiers_[code & 0b00000011];
+    const snm::Byte handler = code & 0b11111100;
+    const snm::ArgModifier arg_modifier = argument_modifiers_[code & 0b00000011];
 
-    if (arg_modifier == common::ArgModifier::REF) {
-        SetAuxiliary(memory_.ReadArgument(static_cast<common::Word>(argument)));
-    } else if (arg_modifier == common::ArgModifier::REF_REF) {
-        SetAuxiliary(memory_.ReadArgument(static_cast<common::Word>(memory_.ReadArgument(static_cast<common::Word>(argument)))));
+    if (arg_modifier == snm::ArgModifier::REF) {
+        SetAuxiliary(memory_.ReadArgument(static_cast<snm::Word>(argument)));
+    } else if (arg_modifier == snm::ArgModifier::REF_REF) {
+        SetAuxiliary(
+            memory_.ReadArgument(static_cast<snm::Word>(memory_.ReadArgument(static_cast<snm::Word>(argument)))));
     } else {
         SetAuxiliary(argument);
     }
@@ -306,17 +306,17 @@ inline void Processor::NextInstruction() {
 }
 
 template <typename T>
-common::Type Processor::TypeIo() {
-    common::Type type = {};
+snm::Type Processor::TypeIo() {
+    snm::Type type = {};
 
-    if (typeid(T) == typeid(common::Byte)) {
-        type = common::Type::BYTE;
-    } else if (typeid(T) == typeid(common::Word)) {
-        type = common::Type::WORD;
-    } else if (typeid(T) == typeid(common::SignedWord)) {
-        type = common::Type::SIGNED_WORD;
-    } else if (typeid(T) == typeid(common::Real)) {
-        type = common::Type::REAL;
+    if (typeid(T) == typeid(snm::Byte)) {
+        type = snm::Type::BYTE;
+    } else if (typeid(T) == typeid(snm::Word)) {
+        type = snm::Type::WORD;
+    } else if (typeid(T) == typeid(snm::SignedWord)) {
+        type = snm::Type::SIGNED_WORD;
+    } else if (typeid(T) == typeid(snm::Real)) {
+        type = snm::Type::REAL;
     }
 
     return type;
@@ -391,7 +391,11 @@ void Processor::Load() {
 }
 
 void Processor::Store() {
-    const auto address = static_cast<common::Word>(registers_.auxiliary);
+    const auto address = static_cast<snm::Word>(registers_.auxiliary);
+
+    if (address >= snm::CODE_MEMORY_SIZE) {
+        throw std::out_of_range(std::format("IP {}: Address {} exceeds available memory.", std::to_string(registers_.instruction_pointer), std::to_string(address)));
+    }
 
     memory_.WriteArgument(registers_.accumulator, address);
 
@@ -411,7 +415,7 @@ void Processor::Input() {
     if (io_) {
         is_waiting_input_ = true;
 
-        io_->InputAsync(TypeIo<T>(), [this](const common::Bytes bytes) {
+        io_->InputAsync(TypeIo<T>(), [this](const snm::Bytes bytes) {
             is_waiting_input_ = false;
             registers_.accumulator = bytes;
             NextInstruction();
@@ -421,7 +425,7 @@ void Processor::Input() {
 
 template <typename T>
 void Processor::Output() {
-    common::Type type = TypeIo<T>();
+    snm::Type type = TypeIo<T>();
 
     if (io_) {
         io_->Output(registers_.accumulator, type);
@@ -435,7 +439,7 @@ void Processor::Output() {
  */
 
 void Processor::Jump() {
-    SetInstructionPointer(static_cast<common::Word>(registers_.auxiliary));
+    SetInstructionPointer(static_cast<snm::Word>(registers_.auxiliary));
 }
 
 template <class T>
@@ -466,8 +470,8 @@ void Processor::SkipEqual() {
 }
 
 void Processor::JumpAndStore() {
-    const auto address = static_cast<common::Word>(registers_.auxiliary);
-    memory_.WriteArgument(common::Bytes(registers_.instruction_pointer + 1), address);
+    const auto address = static_cast<snm::Word>(registers_.auxiliary);
+    memory_.WriteArgument(snm::Bytes(registers_.instruction_pointer + 1), address);
     if (observer_) {
         observer_->OnMemoryChanged(address);
     }

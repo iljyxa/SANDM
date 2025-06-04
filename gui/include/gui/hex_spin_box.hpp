@@ -1,32 +1,33 @@
 #ifndef HEX_SPIN_BOX_HPP
 #define HEX_SPIN_BOX_HPP
-#include <QSpinBox>
 
-class HexSpinBox final : public QSpinBox {
+#include "spin_box_hoverable.hpp"
+
+class HexSpinBox final : public SpinBoxHoverable {
     Q_OBJECT
 public:
     explicit HexSpinBox(QWidget *parent = nullptr) :
-        QSpinBox(parent) {
+        SpinBoxHoverable(parent) {
         setPrefix("0x");
         setDisplayIntegerBase(16);
         setRange(INT_MIN, INT_MAX);
     }
 
     [[nodiscard]] unsigned int HexValue() const {
-        return u(value());
+        return CastUnsignedInt(value());
     }
 
     void SetHexValue(const unsigned int value) {
-        setValue(i(value));
+        setValue(CastInt(value));
     }
 
 protected:
     [[nodiscard]] QString textFromValue(const int value) const override {
-        return QString::number(u(value), 16).toUpper();
+        return QString::number(CastUnsignedInt(value), 16).toUpper();
     }
 
     [[nodiscard]] int valueFromText(const QString &text) const override {
-        return i(text.toUInt(nullptr, 16));
+        return CastInt(text.toUInt(nullptr, 16));
     }
 
     QValidator::State validate(QString &input, int &pos) const override {
@@ -53,11 +54,11 @@ protected:
     }
 
 private:
-    [[nodiscard]] static unsigned int u(int i) {
+    [[nodiscard]] static unsigned int CastUnsignedInt(int i) {
         return *reinterpret_cast<unsigned int *>(&i);
     }
 
-    [[nodiscard]] static int i(unsigned int u) {
+    [[nodiscard]] static int CastInt(unsigned int u) {
         return *reinterpret_cast<int *>(&u);
     }
 

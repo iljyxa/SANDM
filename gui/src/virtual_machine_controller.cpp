@@ -11,8 +11,8 @@ VirtualMachineController::VirtualMachineController(ProcessorIo* processor_io, QO
 
 // === Управление машиной ===
 
-void VirtualMachineController::Load(const common::ByteCode& byte_code,
-                                    common::SourceToBytecodeMap& source_to_bytecode_map) {
+void VirtualMachineController::Load(const snm::ByteCode& byte_code,
+                                    snm::SourceToBytecodeMap& source_to_bytecode_map) {
     VirtualMachine::Load(byte_code);
     source_to_bytecode_map_ = std::move(source_to_bytecode_map);
 
@@ -117,7 +117,7 @@ VmState VirtualMachineController::GetState() const {
 }
 
 unsigned int VirtualMachineController::GetCurrentCodeLine() {
-    if (const common::DoubleByte ip = processor_->GetInstructionPointer(); bytecode_to_source_map_.contains(ip)) {
+    if (const snm::DoubleByte ip = processor_->GetInstructionPointer(); bytecode_to_source_map_.contains(ip)) {
         return bytecode_to_source_map_[ip];
     }
 
@@ -171,7 +171,7 @@ void VirtualMachineController::OnInstructionPointerEdited(const int value) {
 
 // === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
-void VirtualMachineController::OnRegisterIpChanged(const common::DoubleByte& instruction_pointer) {
+void VirtualMachineController::OnRegisterIpChanged(const snm::DoubleByte& instruction_pointer) {
     if (debugging_ && breakpoints_.contains(instruction_pointer)) {
         VirtualMachine::Stop();
         SetState(PAUSED);
@@ -180,13 +180,13 @@ void VirtualMachineController::OnRegisterIpChanged(const common::DoubleByte& ins
     emit Update();
 }
 
-void VirtualMachineController::OnRegisterAccChanged(const common::Bytes& accumulator) {
+void VirtualMachineController::OnRegisterAccChanged(const snm::Bytes& accumulator) {
 }
 
-void VirtualMachineController::OnRegisterAuxChanged(const common::Bytes& auxiliary) {
+void VirtualMachineController::OnRegisterAuxChanged(const snm::Bytes& auxiliary) {
 }
 
-void VirtualMachineController::OnMemoryChanged(const common::DoubleByte& address) {
+void VirtualMachineController::OnMemoryChanged(const snm::DoubleByte& address) {
 }
 
 void VirtualMachineController::OnStatusChanged(bool& is_running) {

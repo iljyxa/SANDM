@@ -15,18 +15,19 @@ public:
         setMouseTracking(true);
         setSelectionMode(SingleSelection);
         setSelectionBehavior(SelectItems);
+        setStyleSheet("QTableView::item:hover { background-color: rgba(128, 128, 128, 50); }");
     }
 
     void SetReadOnly(const bool read_only) {
         if (read_only) {
-            setEditTriggers(NoEditTriggers);;
+            setEditTriggers(NoEditTriggers);
         } else {
             setEditTriggers(DoubleClicked | EditKeyPressed);
         }
     }
 
 signals:
-    void CellHovered(int row, int column, common::Word value);
+    void CellHovered(int row, int column, std::optional<snm::Word> value);
 
 protected:
     void mouseMoveEvent(QMouseEvent* event) override {
@@ -34,33 +35,27 @@ protected:
             hovered_row_ = index.row();
             hovered_column_ = index.column();
 
-            const common::Word value = model()->data(index).toString().toUInt(nullptr, 16);
+            const snm::Word value = model()->data(index).toString().toUInt(nullptr, 16);
 
             emit CellHovered(hovered_row_, hovered_column_, value);
         } else {
             hovered_row_ = -1;
             hovered_column_ = -1;
+            emit CellHovered(hovered_row_, hovered_column_, std::nullopt);
         }
 
         viewport()->update();
         QTableView::mouseMoveEvent(event);
     }
 
-    void paintEvent(QPaintEvent* event) override {
-        QTableView::paintEvent(event);
-
-        if (hovered_row_ >= 0 && hovered_column_ >= 0) {
-            QPainter painter(viewport());
-
-            QRect row_rect = visualRect(model()->index(hovered_row_, 0));
-            row_rect.setWidth(viewport()->width());
-            painter.fillRect(row_rect, QColor(128, 128, 128, 50));
-
-            QRect column_rect = visualRect(model()->index(0, hovered_column_));
-            column_rect.setHeight(viewport()->height());
-            painter.fillRect(column_rect, QColor(128, 128, 128, 50));
-        }
+    void leaveEvent(QEvent* event) override {
+        hovered_row_ = -1;
+        hovered_column_ = -1;
+        emit CellHovered(hovered_row_, hovered_column_, std::nullopt);
+        viewport()->update();
+        QTableView::leaveEvent(event);
     }
+
 
 private:
     int hovered_row_;

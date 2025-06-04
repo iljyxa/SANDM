@@ -15,17 +15,17 @@ public:
         QAbstractTableModel(parent), vm_controller_(virtual_machine) {
     }
 
-    [[nodiscard]] common::Byte Address(const QModelIndex& index) const {
+    [[nodiscard]] snm::DoubleByte Address(const QModelIndex& index) const {
         return Address(index.row(), index.column());
     }
 
-    [[nodiscard]] common::Byte Address(const int row, const int column) const {
+    [[nodiscard]] snm::DoubleByte Address(const int row, const int column) const {
         return row * columnCount() + column;
     }
 
     [[nodiscard]] int rowCount(const QModelIndex& parent = QModelIndex()) const override { // NOLINT(*-default-arguments)
         Q_UNUSED(parent);
-        return common::CODE_MEMORY_SIZE / columnCount(); // NOLINT(*-narrowing-conversions)
+        return snm::CODE_MEMORY_SIZE / columnCount(); // NOLINT(*-narrowing-conversions)
     }
 
     [[nodiscard]] int columnCount(const QModelIndex& parent = QModelIndex()) const override { // NOLINT(*-default-arguments)
@@ -43,7 +43,7 @@ public:
         }
 
         if (role == Qt::DisplayRole || role == Qt::EditRole) {
-            common::Bytes value = vm_controller_.ReadMemory(Address(index));
+            snm::Bytes value = vm_controller_.ReadMemory(Address(index));
 
             std::string hex = value.ToHexString();
 
@@ -74,12 +74,12 @@ public:
         const QString source_string = value.toString();
 
         bool ok;
-        const common::Word source_value = source_string.toUInt(&ok, 16);
+        const snm::Word source_value = source_string.toUInt(&ok, 16);
         if (!ok) {
             return false;
         }
 
-        vm_controller_.WriteMemory(Address(index), common::Bytes(source_value));
+        vm_controller_.WriteMemory(Address(index), snm::Bytes(source_value));
 
         emit dataChanged(index, index);
 

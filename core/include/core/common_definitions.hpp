@@ -7,7 +7,7 @@
 #include <vector>
 #include "core/bytes.hpp"
 
-namespace common {
+namespace snm {
     enum class OpCode {
         NOPE = 0, ADD, SUB, MUL, DIV, MOD, LOAD, STORE, INPUT, OUTPUT, JUMP, JUMPNSTORE, SKIP_LOWER, SKIP_GREATER, SKIP_EQUAL
     };

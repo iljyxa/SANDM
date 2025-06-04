@@ -12,7 +12,6 @@
     </qresource>
     <qresource>
         <file>README.md</file>
-        <file>docs/README.html</file>
         <file>docs/examples/max(A, B).snm</file>
         <file>docs/examples/bubble_sort(array).snm</file>
         <file>docs/examples/print(str).snm</file>

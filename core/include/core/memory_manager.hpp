@@ -8,23 +8,23 @@ class MemoryManager {
 public:
     MemoryManager() = default;
 
-    void Load(const common::ByteCode &byte_code);
+    void Load(const snm::ByteCode& byte_code);
 
-    void WriteInstruction(common::Byte code, common::Bytes argument, common::DoubleByte address);
-    void WriteInstruction(common::Byte code, common::Bytes argument);
-    std::pair<common::Byte, common::Bytes> ReadInstruction(common::DoubleByte address);
+    void WriteInstruction(snm::Byte code, snm::Bytes argument, snm::DoubleByte address);
+    void WriteInstruction(snm::Byte code, snm::Bytes argument);
+    std::pair<snm::Byte, snm::Bytes> ReadInstruction(snm::DoubleByte address);
 
-    void WriteArgument(common::Bytes argument, common::DoubleByte address);
-    common::Bytes ReadArgument(common::DoubleByte address);
+    void WriteArgument(snm::Bytes argument, snm::DoubleByte address);
+    snm::Bytes ReadArgument(snm::DoubleByte address) const;
 
     void Reset();
     void ResetData();
     [[nodiscard]] size_t Size() const;
 
 private:
-    std::vector<common::Byte> instructions_;
-    std::vector<common::Bytes> arguments_;
-    std::vector<common::Bytes> arguments_original_;
+    std::vector<snm::Byte> instructions_;
+    std::vector<snm::Bytes> arguments_;
+    std::vector<snm::Bytes> arguments_original_;
 };
 
 #endif

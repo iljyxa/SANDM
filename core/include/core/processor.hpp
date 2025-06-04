@@ -1,10 +1,8 @@
 #ifndef PROCESSOR_HPP
 #define PROCESSOR_HPP
 
-#include <bitset>
 #include <functional>
 #include <thread>
-#include <unordered_map>
 
 #include "core/common_definitions.hpp"
 #include "core/memory_manager.hpp"
@@ -12,9 +10,9 @@
 #include "core/processor_observer.hpp"
 
 struct Registers {
-    common::Bytes accumulator{};
-    common::Bytes auxiliary{};
-    common::DoubleByte instruction_pointer = 0;
+    snm::Bytes accumulator{};
+    snm::Bytes auxiliary{};
+    snm::DoubleByte instruction_pointer = 0;
 };
 
 class Processor {
@@ -84,18 +82,18 @@ public:
      * Аккумулятор используется для хранения результатов вычислений и операций процессора.
      * Данный метод предоставляет доступ к текущему значению аккумулятора.
      *
-     * @return Константная ссылка на объект типа `common::Bytes`, содержащий текущее значение аккумулятора.
+     * @return Константная ссылка на объект типа `snm::Bytes`, содержащий текущее значение аккумулятора.
      */
-    const common::Bytes& GetAccumulator() const;
+    const snm::Bytes& GetAccumulator() const;
     /**
      * @brief Возвращает текущее значение регистра указателя инструкций (IP).
      *
      * Указатель инструкций используется для определения адреса следующей инструкции,
      * которая будет выполнена процессором.
      *
-     * @return Константная ссылка на объект типа `common::DoubleByte`, содержащий текущее значение регистра указателя инструкций.
+     * @return Константная ссылка на объект типа `snm::DoubleByte`, содержащий текущее значение регистра указателя инструкций.
      */
-    const common::DoubleByte& GetInstructionPointer() const;
+    const snm::DoubleByte& GetInstructionPointer() const;
     /**
      * @brief Устанавливает значение регистра указателя инструкций (IP).
      *
@@ -103,18 +101,18 @@ public:
      * При изменении значения регистра вызывается уведомление наблюдателя. Если значение превышает
      * размер доступной памяти процессора, работа процессора завершится путём изменения состояния.
      *
-     * @param value Новое значение указателя инструкций, передаваемое в виде объекта типа `common::DoubleByte`.
+     * @param value Новое значение указателя инструкций, передаваемое в виде объекта типа `snm::DoubleByte`.
      */
-    void SetInstructionPointer(common::DoubleByte value);
+    void SetInstructionPointer(snm::DoubleByte value);
     /**
      * @brief Возвращает текущее значение вспомогательного регистра.
      *
      * Метод позволяет получить доступ к вспомогательным данным, которые хранятся
      * в соответствующем регистре процессора.
      *
-     * @return Константная ссылка на объект типа `common::DoubleByte`, содержащий текущее значение вспомогательного регистра.
+     * @return Константная ссылка на объект типа `snm::DoubleByte`, содержащий текущее значение вспомогательного регистра.
      */
-    const common::Bytes& GetAuxiliary() const;
+    const snm::Bytes& GetAuxiliary() const;
     /**
      * @brief Проверяет, выполняется ли процессор в текущий момент.
      *
@@ -167,8 +165,8 @@ private:
     bool is_running_; ///< Указывает, запущен ли процессор в текущий момент
     std::atomic<bool> is_waiting_input_{false}; ///< Признак, что процессор ожидает завершения ввода извне
 
-    std::array<std::function<void()>, std::numeric_limits<common::Byte>::max() + 1> instructions_handlers_;
-    std::array<common::ArgModifier, 4> argument_modifiers_;
+    std::array<std::function<void()>, std::numeric_limits<snm::Byte>::max() + 1> instructions_handlers_;
+    std::array<snm::ArgModifier, 4> argument_modifiers_{};
 
     /**
      * @brief Выполняет текущую инструкцию процессора.
@@ -201,12 +199,12 @@ private:
      * @brief Определяет тип данных в зависимости от переданного шаблонного параметра.
      *
      * Метод сравнивает тип шаблонного параметра T с предопределенными типами, такими как
-     * common::Byte, common::Word, common::SignedWord, common::Real, и возвращает соответствующее значение из перечисления common::Type.
+     * snm::Byte, snm::Word, snm::SignedWord, snm::Real, и возвращает соответствующее значение из перечисления snm::Type.
      *
-     * @return Значение перечисления common::Type, соответствующее типу данных.
+     * @return Значение перечисления snm::Type, соответствующее типу данных.
      */
     template <class T>
-    static common::Type TypeIo();
+    static snm::Type TypeIo();
 
     void Nope();
     template <typename T>

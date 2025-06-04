@@ -93,10 +93,14 @@ private slots:
     // === Взаимодействие с пользователем ===
     /**
      * @brief Обновление строки состояния
-     * @param address
      * @param value Значение в ячейке памяти
+     * @param address
      */
-    void UpdateStatusBar(int address, common::Word value) const;
+    void UpdateStatusBar(std::optional<snm::Word> value = std::nullopt, int address = -1) const;
+
+    // === Справка и информация ===
+    void ShowHelp();
+    static void ShowAbout();
 
 private:
     // === Компоненты интерфейса ===
@@ -125,7 +129,6 @@ private:
     // === Вспомогательные методы ===
     void CreateToolBar();
     void SetToolbarActions(VmState state, bool debugging) const;
-    void UpdateStatusBar_TableCell(int row, int column, common::Word value) const;
     bool UpdateByteCode();
     void CreateMenus();
     void LoadExamples();
@@ -133,13 +136,9 @@ private:
     void CreateSettingsMenu();
     void ApplyTheme();
 
-    // === Справка и информация ===
-    void ShowHelp();
-    static void ShowAbout();
-
     // === Реализация ProcessorIo ===
-    void InputAsync(common::Type type, InputCallback callback) override;
-    void Output(common::Bytes& bytes, common::Type& type) override;
+    void InputAsync(snm::Type type, InputCallback callback) override;
+    void Output(snm::Bytes& bytes, snm::Type& type) override;
 };
 
 #endif

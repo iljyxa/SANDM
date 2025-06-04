@@ -306,7 +306,7 @@ QVector<unsigned int> CodeEditor::FindErrorLineNumbers(const QString& input) {
     while (it.hasNext()) {
         QRegularExpressionMatch match = it.next();
         bool ok;
-        unsigned int number = match.captured(1).toUInt(&ok);
+        const unsigned int number = match.captured(1).toUInt(&ok);
         if (ok) {
             result.append(number);
         }

@@ -16,10 +16,10 @@
  * а также номер строки исходного кода.
  */
 struct Instruction {
-    common::OpCode opcode = common::OpCode::NOPE; ///< Команда
-    common::ArgModifier argument_modifier = common::ArgModifier::NONE; ///< Модификатор адреса
-    common::TypeModifier type_modifier = common::TypeModifier::SW; ///< Модификатор типа
-    common::Bytes argument{}; ///< Значение аргумента команды
+    snm::OpCode opcode = snm::OpCode::NOPE; ///< Команда
+    snm::ArgModifier argument_modifier = snm::ArgModifier::NONE; ///< Модификатор адреса
+    snm::TypeModifier type_modifier = snm::TypeModifier::SW; ///< Модификатор типа
+    snm::Bytes argument{}; ///< Значение аргумента команды
     std::optional<std::string> using_label_name; ///< Имя метки, используемой в качестве аргумента
     std::optional<std::string> label_name; ///< Имя метки этой инструкции
     unsigned int line_number = 0; ///< Номер строки в исходном коде
@@ -46,7 +46,7 @@ public:
      * @param source Исходный код для компиляции, представленный в виде строки.
      * @return Байт-код, полученный в результате компиляции исходного кода.
      */
-    common::ByteCode Compile(const std::string& source);
+    snm::ByteCode Compile(const std::string& source);
     /**
      * @brief Компилирует исходный код в байт-код с отладочной информацией.
      *
@@ -59,7 +59,7 @@ public:
      * @return Пара, содержащая байт-код программы и карту соответствий
      * строк исходного кода адресам байт-кода.
      */
-    std::pair<common::ByteCode, common::SourceToBytecodeMap> CompileWithDebugInfo(const std::string& source);
+    std::pair<snm::ByteCode, snm::SourceToBytecodeMap> CompileWithDebugInfo(const std::string& source);
     /**
      * @brief Проверяет исходный код на наличие ошибок.
      *
@@ -75,9 +75,12 @@ public:
     std::vector<std::string> TestSource(const std::string& source);
 
 private:
-    std::unordered_map<std::string, common::OpCode> opcode_map_; ///< Соответствие строковых имен команд в верхнем регистре перечислению
-    std::unordered_map<std::string, common::TypeModifier> type_modifier_map_; ///< Соответствие строковых имен модификаторов типов в верхнем регистре перечислению
-    std::unordered_map<std::string, common::ArgModifier> arg_modifier_map_; ///< Соответствие строковых имен модификаторов адресов в верхнем регистре перечислению
+    std::unordered_map<std::string, snm::OpCode> opcode_map_;
+    ///< Соответствие строковых имен команд в верхнем регистре перечислению
+    std::unordered_map<std::string, snm::TypeModifier> type_modifier_map_;
+    ///< Соответствие строковых имен модификаторов типов в верхнем регистре перечислению
+    std::unordered_map<std::string, snm::ArgModifier> arg_modifier_map_;
+    ///< Соответствие строковых имен модификаторов адресов в верхнем регистре перечислению
     unsigned int line_number_; ///< Номер текущей обрабатываемой строки в исходном коде
 
     /**
@@ -152,7 +155,7 @@ private:
      * @param type_modifier Модификатор типа, определяющий, какой тип значения проверяется.
      * @return true, если значение допустимо для указанного модификатора типа, иначе false.
      */
-    static bool IsNumberValidForType(common::Bytes bytes, common::TypeModifier type_modifier);
+    static bool IsNumberValidForType(snm::Bytes bytes, snm::TypeModifier type_modifier);
     /**
      * @brief Преобразует числовую строку в представление в байтах.
      *
@@ -163,10 +166,10 @@ private:
      * "0x" для шестнадцатеричного числа, или как обычное десятичное число).
      * @param type_modifier Модификатор типа, определяющий формат числа. Например, используется для указания,
      * является ли число с плавающей запятой, если требуется.
-     * @return common::Bytes Результат преобразования числа в виде массива байтов.
+     * @return snm::Bytes Результат преобразования числа в виде массива байтов.
      * @throws std::invalid_argument Если строка содержит некорректное или слишком длинное число.
      */
-    common::Bytes ParseNumber(const std::string& str, const common::TypeModifier& type_modifier);
+    snm::Bytes ParseNumber(const std::string& str, const snm::TypeModifier& type_modifier);
     /**
      * @brief Считывает и обрабатывает строку из входного потока, удаляя комментарии и лишние пробелы.
      *
@@ -261,7 +264,7 @@ private:
      * @return Пара, содержащая скомпилированный байт-код и карту сопоставлений строк исходного кода с байт-кодом.
      * @throw std::runtime_error В случае наличия ошибок в процессе парсинга исходного кода.
      */
-    std::pair<common::ByteCode, common::SourceToBytecodeMap> CompileInternal(const std::string& source);
+    std::pair<snm::ByteCode, snm::SourceToBytecodeMap> CompileInternal(const std::string& source);
     /**
      * @brief Парсит исходный код ассемблера и преобразует его в список инструкций.
      *

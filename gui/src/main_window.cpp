@@ -2,6 +2,7 @@
 #include <QDesktopServices>
 #include <QDirIterator>
 #include <QFileDialog>
+#include <QKeyCombination>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QProperty>
@@ -34,7 +35,6 @@ MainWindow::MainWindow(QWidget* parent) :
     action_debug_(new QAction(this)),
     action_step_(new QAction(this)),
     is_bytecode_fresh_(false) {
-
     setCentralWidget(code_editor_);
 
     memory_table_view_->setModel(memory_table_model_);
@@ -58,7 +58,10 @@ MainWindow::MainWindow(QWidget* parent) :
 
     setStatusBar(status_bar_);
 
-    connect(memory_table_view_, &MemoryView::CellHovered, this, &MainWindow::UpdateStatusBar_TableCell);
+    connect(memory_table_view_, &MemoryView::CellHovered, this,
+            [this](const int row, const int column, const std::optional<snm::Word> value) {
+                row == -1 ? UpdateStatusBar() : UpdateStatusBar(value.value(), memory_table_model_->Address(row, column));
+            });
 
     connect(vm_controller_, &VirtualMachineController::StateChanged, this, &MainWindow::OnStateVmChanged);
     connect(vm_controller_, &VirtualMachineController::Update, this, &MainWindow::OnUpdateVm);
@@ -72,6 +75,12 @@ MainWindow::MainWindow(QWidget* parent) :
             &VirtualMachineController::OnAuxiliaryEdited);
     connect(register_editor_, &RegisterEditor::InstructionPointerEdited, vm_controller_,
             &VirtualMachineController::OnInstructionPointerEdited);
+    connect(register_editor_, &RegisterEditor::AccumulatorHovered, [this](const bool hovered) {
+        hovered ? UpdateStatusBar(register_editor_->accumulator_edit->value()) : UpdateStatusBar();
+    });
+    connect(register_editor_, &RegisterEditor::AuxiliaryHovered, [this](const bool hovered) {
+        hovered ? UpdateStatusBar(register_editor_->auxiliary_edit->value()) : UpdateStatusBar();
+    });
 
     connect(code_editor_, &CodeEditor::BreakpointAdded, vm_controller_, &VirtualMachineController::OnInsertBreakpoint);
     connect(code_editor_, &CodeEditor::BreakpointRemoved, vm_controller_,
@@ -89,7 +98,8 @@ void MainWindow::CreateMenus() {
     QMenu* file_menu = menuBar()->addMenu("Файл");
     const QAction* open_action = file_menu->addAction("Открыть", QKeySequence(Qt::CTRL | Qt::Key_O));
     const QAction* save_action = file_menu->addAction("Сохранить", QKeySequence(Qt::CTRL | Qt::Key_S));
-    const QAction* save_as_action = file_menu->addAction("Сохранить как ...", QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
+    const QAction* save_as_action = file_menu->addAction("Сохранить как ...",
+                                                         QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
     const QAction* exit_action = file_menu->addAction("Выход", QKeySequence(Qt::CTRL | Qt::Key_Q));
 
     connect(open_action, &QAction::triggered, this, &MainWindow::OnOpenFile);
@@ -103,6 +113,7 @@ void MainWindow::CreateMenus() {
     emulator_menu->addAction(action_stop_);
 
     // Добавляем новую команду "Сбросить"
+    // ReSharper disable once CppDFAMemoryLeak
     const auto action_reset = new QAction("Сбросить", this);
     connect(action_reset, &QAction::triggered, vm_controller_, &VirtualMachineController::OnReset);
     emulator_menu->addAction(action_reset);
@@ -131,27 +142,27 @@ void MainWindow::LoadExamples() {
     QStringList resource_files;
     QDirIterator it(resource_prefix, QDirIterator::Subdirectories);
     while (it.hasNext()) {
-        QString resourcePath = it.next();
-        if (resourcePath.endsWith(".snm")) {
-            resource_files << resourcePath;
+        QString resource_path = it.next();
+        if (resource_path.endsWith(".snm")) {
+            resource_files << resource_path;
         }
     }
 
     resource_files.sort();
 
-    for (const QString& resourcePath : resource_files) {
-        QString fileName = QFileInfo(resourcePath).fileName();
-        QAction* exampleAction = examples_menu_->addAction(fileName);
+    for (const QString& resource_path : resource_files) {
+        QString file_name = QFileInfo(resource_path).fileName();
+        const QAction* example_action = examples_menu_->addAction(file_name);
 
-        connect(exampleAction, &QAction::triggered, this, [this, resourcePath]() {
-            LoadExampleFromResource(resourcePath);
+        connect(example_action, &QAction::triggered, this, [this, resource_path]() {
+            LoadExampleFromResource(resource_path);
         });
     }
 
     // Если примеров нет, добавляем заглушку
     if (examples_menu_->actions().isEmpty()) {
-        QAction* noExamplesAction = examples_menu_->addAction("Нет доступных примеров");
-        noExamplesAction->setEnabled(false);
+        QAction* no_examples_action = examples_menu_->addAction("Нет доступных примеров");
+        no_examples_action->setEnabled(false);
     }
 }
 
@@ -198,7 +209,7 @@ void MainWindow::OnOpenFile() {
     }
 
     if (!code_editor_->document()->isEmpty()) {
-        QMessageBox::StandardButton reply = QMessageBox::question(
+        const QMessageBox::StandardButton reply = QMessageBox::question(
             this,
             "Подтверждение",
             "Текущий код будет заменен. Продолжить?",
@@ -311,7 +322,7 @@ void MainWindow::ShowHelp() {
 }
 
 void MainWindow::ShowAbout() {
-    const QString aboutText = QString(
+    const QString about_text = QString(
         "<center>"
         "<h1>SANDM</h1>"
         "<p>Simple Assembler Non-stack Demo Machine</p>"
@@ -326,7 +337,7 @@ void MainWindow::ShowAbout() {
 
     QMessageBox about_box;
     about_box.setWindowTitle("О программе");
-    about_box.setText(aboutText);
+    about_box.setText(about_text);
     about_box.setIconPixmap(QPixmap(":/resources/icons/sandm.svg").scaled(64, 64));
     about_box.exec();
 }
@@ -353,11 +364,11 @@ void MainWindow::CreateToolBar() {
     connect(action_stop_, &QAction::triggered, vm_controller_, &VirtualMachineController::OnStop);
     connect(action_step_, &QAction::triggered, this, &MainWindow::OnStep);
 
-    action_start_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
-    action_debug_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_F5));
-    action_pause_continue_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_R));
-    action_stop_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Shift | Qt::Key_F5));
-    action_step_->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_F7));
+    action_start_->setShortcut(QKeyCombination(Qt::CTRL | Qt::Key_R));
+    action_debug_->setShortcut(QKeyCombination(Qt::CTRL | Qt::Key_F5));
+    action_pause_continue_->setShortcut(QKeyCombination(Qt::CTRL | Qt::Key_R));
+    action_stop_->setShortcut(QKeyCombination(Qt::CTRL | Qt::SHIFT | Qt::Key_F5));
+    action_step_->setShortcut(QKeyCombination(Qt::CTRL | Qt::Key_F7));
 
     emit OnStateVmChanged(STOPPED, false);
 }
@@ -373,29 +384,27 @@ void MainWindow::SetToolbarActions(const VmState state, bool debugging = false) 
     action_step_->setVisible(state != RUNNING);
 }
 
-void MainWindow::UpdateStatusBar_TableCell(const int row, const int column, const common::Word value) const {
-    UpdateStatusBar(memory_table_model_->Address(row, column), value);
-}
-
-void MainWindow::UpdateStatusBar(const int address, const common::Word value) const {
-    common::Bytes bytes(value);
+void MainWindow::UpdateStatusBar(const std::optional<snm::Word> value, const int address) const {
+    snm::Bytes bytes(value);
 
     QString status_text;
 
-    if (address < 0) {
+    if (!value) {
+        status_text = "";
+    } else if (address < 0) {
         status_text = QString(
                           "Decimal: %2 | Signed decimal: %3 | Float: %4 | Binary: %5")
-                      .arg(static_cast<common::Word>(bytes))
-                      .arg(static_cast<common::SignedWord>(bytes))
-                      .arg(static_cast<common::Real>(bytes))
+                      .arg(static_cast<snm::Word>(bytes))
+                      .arg(static_cast<snm::SignedWord>(bytes))
+                      .arg(static_cast<snm::Real>(bytes))
                       .arg(QString::fromStdString(bytes.ToBinString()));
     } else {
         status_text = QString(
                           "Address: 0x%1 | Decimal: %2 | Signed decimal: %3 | Float: %4 | Binary: %5")
                       .arg(address, 4, 16, QChar('0'))
-                      .arg(static_cast<common::Word>(bytes))
-                      .arg(static_cast<common::SignedWord>(bytes))
-                      .arg(static_cast<common::Real>(bytes))
+                      .arg(static_cast<snm::Word>(bytes))
+                      .arg(static_cast<snm::SignedWord>(bytes))
+                      .arg(static_cast<snm::Real>(bytes))
                       .arg(QString::fromStdString(bytes.ToBinString()));
     }
 
@@ -403,14 +412,14 @@ void MainWindow::UpdateStatusBar(const int address, const common::Word value) co
     statusBar()->showMessage(status_text);
 }
 
-void MainWindow::Output(common::Bytes& bytes, common::Type& type) {
+void MainWindow::Output(snm::Bytes& bytes, snm::Type& type) {
     const QString output_string(VirtualMachine::BytesToString(bytes, type).data());
     console_->insertPlainText(output_string);
 }
 
-void MainWindow::InputAsync(common::Type type, InputCallback callback) {
+void MainWindow::InputAsync(snm::Type type, InputCallback callback) {
     console_->GetInputStringAsync([this, type, callback](const QString& input) {
-        const common::Bytes bytes = VirtualMachine::BytesFromString(input.toStdString(), type);
+        const snm::Bytes bytes = VirtualMachine::BytesFromString(input.toStdString(), type);
         callback(bytes);
     });
 }
