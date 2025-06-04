@@ -1,0 +1,85 @@
+name: CMake + Qt + Google Test (Multi-Platform)
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        build_type: [Release]
+        c_compiler: [gcc, clang, cl]
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+            qt_ver: "6.5.0"
+            qt_host: "windows"
+            qt_arch: "win64_msvc2019_64"
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            qt_ver: "6.5.0"
+            qt_host: "linux"
+            qt_arch: "gcc_64"
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            qt_ver: "6.5.0"
+            qt_host: "linux"
+            qt_arch: "gcc_64"
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # Установка Qt (Windows + Linux)
+    - name: Install Qt
+      shell: bash
+      run: |
+        if [ "${{ runner.os }}" = "Windows" ]; then
+          pip install aqtinstall
+          aqt install-qt ${{ matrix.qt_host }} desktop ${{ matrix.qt_ver }} ${{ matrix.qt_arch }} -m qttools qt5compat
+          echo "Qt6_DIR=$HOME/Qt/${{ matrix.qt_ver }}/${{ matrix.qt_arch }}/lib/cmake/Qt6" >> $GITHUB_ENV
+        else
+          sudo apt-get update
+          sudo apt-get install -y qt6-base-dev qt6-tools-dev-tools libgmock-dev googletest
+        fi
+
+    - name: Set build directory
+      id: strings
+      shell: bash
+      run: |
+        echo "build-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+
+    # Конфигурация CMake с Qt и Google Test
+    - name: Configure CMake
+      shell: bash
+      run: >
+        cmake -B ${{ steps.strings.outputs.build-dir }}
+        -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+        -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        -DQt6_DIR="${{ env.Qt6_DIR }}"  # Только для Windows (Linux Qt ищется через apt)
+        -S ${{ github.workspace }}
+
+    - name: Build
+      run: cmake --build ${{ steps.strings.outputs.build-dir }} --config ${{ matrix.build_type }}
+
+    # Запуск тестов (Google Test)
+    - name: Run Tests
+      working-directory: ${{ steps.strings.outputs.build-dir }}
+      run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
