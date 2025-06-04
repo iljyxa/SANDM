@@ -374,7 +374,7 @@ bool Assembler::IsNumberValidForType(const common::Bytes bytes, const common::Ty
         return value >= std::numeric_limits<common::SignedWord>::min() && value <= std::numeric_limits<common::SignedWord>::max();
     }
     case common::TypeModifier::R: {
-        const auto value = static_cast<double_t>(bytes);
+        const auto value = static_cast<double>(bytes);
         return value >= std::numeric_limits<common::Real>::min() && value <= std::numeric_limits<common::Real>::max();
     }
     default:
