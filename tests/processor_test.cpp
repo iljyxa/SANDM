@@ -3,14 +3,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-using ::testing::Return;
-
-class MockProcessorIo : public ProcessorIo {
-public:
-    MOCK_METHOD(void, InputAsync, (common::Type type, std::function<void(common::Bytes)> callback), (override));
-    MOCK_METHOD(void, Output, (common::Bytes& bytes, common::Type& type), (override));
-};
-
 class ProcessorTest : public ::testing::Test, public ::testing::WithParamInterface<common::ArgModifier> {
 public:
     void SetA(const common::Bytes value) const {
