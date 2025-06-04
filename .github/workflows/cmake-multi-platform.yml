@@ -15,40 +15,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - name: Setup Qt ${{ env.QT_VERSION }}
-      shell: bash
-      run: |
-        # Полная очистка возможных конфликтов
-        sudo apt-get remove '^qt6-.*' -y
-        sudo rm -rf /usr/local/Qt*
-        
-        # Установка зависимостей
-        sudo apt-get update
-        sudo apt-get install -y \
-          python3-pip \
-          libgl1-mesa-dev \
-          libxkbcommon-x11-0 \
-          libvulkan1
-        
-        # Установка aqtinstall
-        python -m pip install --upgrade pip
-        pip install aqtinstall==3.1.9  # Проверенная стабильная версия
-        
-        # Установка Qt с явным указанием всех компонентов
-        aqt install-qt linux desktop ${{ env.QT_VERSION }} ${{ env.QT_ARCH }} \
-          -m qtbase qt5compat qtsvg qtdeclarative
-        
-        # Проверка установки
-        QT_PATH="$HOME/Qt/${{ env.QT_VERSION }}/${{ env.QT_ARCH }}"
-        echo "Checking Qt installation..."
-        ls -la $QT_PATH/lib/cmake
-        $QT_PATH/bin/qmake --version
-        
-        # Настройка переменных
-        echo "CMAKE_PREFIX_PATH=$QT_PATH" >> $GITHUB_ENV
-        echo "Qt6_DIR=$QT_PATH/lib/cmake/Qt6" >> $GITHUB_ENV
-        echo "PATH=$QT_PATH/bin:$PATH" >> $GITHUB_ENV
+    
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v4
 
     - name: Install Build Tools
       run: |
