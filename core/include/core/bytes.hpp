@@ -2,6 +2,8 @@
 #define BYTES_HPP
 
 #include <array>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <cstdint>
 #include <cstring>
 #include <format>
 
