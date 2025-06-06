@@ -124,7 +124,7 @@ VmState VirtualMachineController::GetState() const {
 }
 
 unsigned int VirtualMachineController::GetCurrentCodeLine() {
-    if (const snm::DoubleByte ip = processor_->GetInstructionPointer(); bytecode_to_source_map_.contains(ip)) {
+    if (const snm::Address ip = processor_->GetInstructionPointer(); bytecode_to_source_map_.contains(ip)) {
         return bytecode_to_source_map_[ip];
     }
 
@@ -178,7 +178,7 @@ void VirtualMachineController::OnInstructionPointerEdited(const int value) {
 
 // === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
-void VirtualMachineController::OnRegisterIpChanged(const snm::DoubleByte& instruction_pointer) {
+void VirtualMachineController::OnRegisterIpChanged(const snm::Address& instruction_pointer) {
     if (debugging_ && breakpoints_.contains(instruction_pointer)) {
         VirtualMachine::Stop();
         SetState(PAUSED);
@@ -193,7 +193,7 @@ void VirtualMachineController::OnRegisterAccChanged(const snm::Bytes& accumulato
 void VirtualMachineController::OnRegisterAuxChanged(const snm::Bytes& auxiliary) {
 }
 
-void VirtualMachineController::OnMemoryChanged(const snm::DoubleByte& address) {
+void VirtualMachineController::OnMemoryChanged(const snm::Address& address) {
 }
 
 void VirtualMachineController::OnStateChanged(const snm::ProcessorState& state) {

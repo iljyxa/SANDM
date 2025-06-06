@@ -16,7 +16,7 @@ public:
      * @brief Вызывается при изменении указателя инструкций.
      * @param instruction_pointer Новое значение указателя инструкций.
      */
-    virtual void OnRegisterIpChanged(const snm::DoubleByte& instruction_pointer) = 0;
+    virtual void OnRegisterIpChanged(const snm::Address& instruction_pointer) = 0;
     /**
      * @brief Вызывается при изменении значения аккумулятора.
      * @param accumulator Новое значение аккумулятора.
@@ -31,7 +31,7 @@ public:
      * @brief Вызывается при изменении памяти.
      * @param address Адрес измененной ячейки памяти.
      */
-    virtual void OnMemoryChanged(const snm::DoubleByte& address) = 0;
+    virtual void OnMemoryChanged(const snm::Address& address) = 0;
     /**
      * @brief Вызывается при изменении статуса процессора.
      * @param state Текущее состояние процессора.

@@ -33,7 +33,7 @@ std::pair<snm::ByteCode, snm::SourceToBytecodeMap> Assembler::CompileInternal(co
     snm::ByteCode byte_code{};
     snm::SourceToBytecodeMap source_to_bytecode_map;
 
-    snm::DoubleByte current_bytecode = 0;
+    snm::Address current_bytecode = 0;
 
     // ReSharper disable once CppUseStructuredBinding
     auto [instructions, labels_addresses, errors] = ParseSource(source);

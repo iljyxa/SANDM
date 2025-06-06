@@ -22,7 +22,7 @@
 struct Registers {
     snm::Bytes accumulator{};
     snm::Bytes auxiliary{};
-    snm::DoubleByte instruction_pointer = 0;
+    snm::Address instruction_pointer = 0;
 };
 
 class Processor {
@@ -101,9 +101,9 @@ public:
      * Указатель инструкций используется для определения адреса следующей инструкции,
      * которая будет выполнена процессором.
      *
-     * @return Константная ссылка на объект типа `snm::DoubleByte`, содержащий текущее значение регистра указателя инструкций.
+     * @return Константная ссылка на объект типа `snm::Address`, содержащий текущее значение регистра указателя инструкций.
      */
-    [[nodiscard]] const snm::DoubleByte& GetInstructionPointer() const;
+    [[nodiscard]] const snm::Address& GetInstructionPointer() const;
     /**
      * @brief Устанавливает значение регистра указателя инструкций (IP).
      *
@@ -111,16 +111,16 @@ public:
      * При изменении значения регистра вызывается уведомление наблюдателя. Если значение превышает
      * размер доступной памяти процессора, работа процессора завершится путём изменения состояния.
      *
-     * @param value Новое значение указателя инструкций, передаваемое в виде объекта типа `snm::DoubleByte`.
+     * @param value Новое значение указателя инструкций, передаваемое в виде объекта типа `snm::Address`.
      */
-    void SetInstructionPointer(snm::DoubleByte value);
+    void SetInstructionPointer(snm::Address value);
     /**
      * @brief Возвращает текущее значение вспомогательного регистра.
      *
      * Метод позволяет получить доступ к вспомогательным данным, которые хранятся
      * в соответствующем регистре процессора.
      *
-     * @return Константная ссылка на объект типа `snm::DoubleByte`, содержащий текущее значение вспомогательного регистра.
+     * @return Константная ссылка на объект типа `snm::Address`, содержащий текущее значение вспомогательного регистра.
      */
     [[nodiscard]] const snm::Bytes& GetAuxiliary() const;
     /**

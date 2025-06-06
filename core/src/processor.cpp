@@ -250,11 +250,11 @@ const snm::Bytes& Processor::GetAuxiliary() const {
     return registers_.auxiliary;
 }
 
-const snm::DoubleByte& Processor::GetInstructionPointer() const {
+const snm::Address& Processor::GetInstructionPointer() const {
     return registers_.instruction_pointer;
 }
 
-void Processor::SetInstructionPointer(const snm::DoubleByte value) {
+void Processor::SetInstructionPointer(const snm::Address value) {
     registers_.instruction_pointer = value;
 
     if (observer_) {

@@ -60,11 +60,11 @@ public:
 
     // === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
-    void OnMemoryChanged(const snm::DoubleByte& address) override;
+    void OnMemoryChanged(const snm::Address& address) override;
     void OnStateChanged(const snm::ProcessorState& state) override;
     void OnRegisterAccChanged(const snm::Bytes& accumulator) override;
     void OnRegisterAuxChanged(const snm::Bytes& auxiliary) override;
-    void OnRegisterIpChanged(const snm::DoubleByte& instruction_pointer) override;
+    void OnRegisterIpChanged(const snm::Address& instruction_pointer) override;
 
 public slots:
     // === Управление состоянием машины ===
@@ -152,7 +152,7 @@ signals:
 private:
     VmState state_; ///< Текущее состояние
     bool debugging_; ///< Признак работы в режиме отладки
-    QSet<snm::DoubleByte> breakpoints_; ///< Точки останова для байт-кода
+    QSet<snm::Address> breakpoints_; ///< Точки останова для байт-кода
     QSet<unsigned int> source_breakpoints_; ///< Точки останова для исходного кода
     snm::SourceToBytecodeMap source_to_bytecode_map_; ///< Карта соответствия исходного кода байт-коду
     snm::BytecodeToSourceMap bytecode_to_source_map_; ///< Карта соответствия байт-кода исходному коду

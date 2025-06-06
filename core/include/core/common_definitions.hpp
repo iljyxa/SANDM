@@ -67,14 +67,15 @@ namespace snm {
     using Word = unsigned int;
     using SignedWord = int;
     using Real = float;
+    using Address = DoubleByte;
 
     static constexpr size_t ARGUMENT_SIZE = sizeof(Word);
-    static constexpr size_t CODE_MEMORY_SIZE = std::numeric_limits<DoubleByte>::max() + 1;
+    static constexpr size_t CODE_MEMORY_SIZE = std::numeric_limits<Address>::max() + 1;
 
     using Bytes = Bytes<ARGUMENT_SIZE>;
     using ByteCode = std::vector<Byte>;
-    using SourceToBytecodeMap = std::unordered_map<unsigned int, DoubleByte>;
-    using BytecodeToSourceMap = std::unordered_map<DoubleByte, unsigned int>;
+    using SourceToBytecodeMap = std::unordered_map<unsigned int, Address>;
+    using BytecodeToSourceMap = std::unordered_map<Address, unsigned int>;
 
     /**
      * @struct OpCodeProperties

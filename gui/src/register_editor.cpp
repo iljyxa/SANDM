@@ -31,7 +31,7 @@ HexSpinBox* RegisterEditor::NewHexEdit(QWidget* parent) {
 SpinBoxHoverable* RegisterEditor::NewDecEdit(QWidget* parent) {
     // ReSharper disable once CppDFAMemoryLeak
     auto* dec_edit = new SpinBoxHoverable(parent);
-    dec_edit->setRange(std::numeric_limits<snm::DoubleByte>::min(), std::numeric_limits<snm::DoubleByte>::max());
+    dec_edit->setRange(std::numeric_limits<snm::Address>::min(), std::numeric_limits<snm::Address>::max());
     return dec_edit;
 }
 

@@ -197,7 +197,7 @@ void MainWindow::LoadExampleFromResource(const QString& resource_path) {
 }
 
 void MainWindow::OnOpenFile() {
-    QString file_name = QFileDialog::getOpenFileName(
+    const QString file_name = QFileDialog::getOpenFileName(
         this,
         "Открыть файл",
         "",
@@ -474,7 +474,7 @@ void MainWindow::OnStateVmChanged(const VmState state, const bool debugging) con
     SetToolbarActions(state, debugging);
     code_editor_->ClearHighlightedLines();
     if (state == PAUSED) {
-        const int current_line = vm_controller_->GetCurrentCodeLine();
+        const unsigned int current_line = vm_controller_->GetCurrentCodeLine();
         code_editor_->ScrollToLine(current_line);
         code_editor_->HighlightLine(current_line);
     }

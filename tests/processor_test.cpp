@@ -15,7 +15,7 @@ public:
 
     void WriteInstruction(const snm::OpCode opcode, const snm::TypeModifier type_modifier,
                           const snm::ArgModifier arg_modifier, const snm::Bytes argument,
-                          const snm::DoubleByte address) const {
+                          const snm::Address address) const {
         memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), argument, address);
     }
 
@@ -26,12 +26,12 @@ public:
     [[nodiscard]] snm::Bytes Calc(const snm::OpCode opcode, const snm::TypeModifier type_modifier,
                                   const snm::ArgModifier arg_modifier) const {
         if (arg_modifier == snm::ArgModifier::REF) {
-            constexpr snm::DoubleByte address = 256;
+            constexpr snm::Address address = 256;
             memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address));
             memory_->WriteArgument(argument_, address);
         } else if (arg_modifier == snm::ArgModifier::REF_REF) {
-            constexpr snm::DoubleByte address_pointer = 9000;
-            constexpr snm::DoubleByte address_value = 10000;
+            constexpr snm::Address address_pointer = 9000;
+            constexpr snm::Address address_value = 10000;
 
             memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address_pointer));
             memory_->WriteArgument(argument_, address_value);
@@ -52,12 +52,12 @@ public:
     void Exec(const snm::OpCode opcode, const snm::TypeModifier type_modifier,
               const snm::ArgModifier arg_modifier) const {
         if (arg_modifier == snm::ArgModifier::REF) {
-            constexpr snm::DoubleByte address = 256;
+            constexpr snm::Address address = 256;
             memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address));
             memory_->WriteArgument(argument_, address);
         } else if (arg_modifier == snm::ArgModifier::REF_REF) {
-            constexpr snm::DoubleByte address_pointer = 9000;
-            constexpr snm::DoubleByte address_value = 10000;
+            constexpr snm::Address address_pointer = 9000;
+            constexpr snm::Address address_value = 10000;
 
             memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address_pointer));
             memory_->WriteArgument(argument_, address_value);
@@ -69,12 +69,12 @@ public:
         processor_->Step();
     }
 
-    [[nodiscard]] snm::Bytes ReadMemory(const snm::DoubleByte address) const {
+    [[nodiscard]] snm::Bytes ReadMemory(const snm::Address address) const {
         return memory_->ReadArgument(address);
     }
 
     // ReSharper disable once CppInconsistentNaming
-    [[nodiscard]] snm::DoubleByte GetIP() const {
+    [[nodiscard]] snm::Address GetIP() const {
         return processor_->GetInstructionPointer();
     }
 
@@ -289,7 +289,7 @@ TEST_P(ProcessorTest, Store) {
     }
 
     snm::Bytes result{};
-    constexpr snm::DoubleByte address = 1234;
+    constexpr snm::Address address = 1234;
 
     SetA(snm::Bytes(std::numeric_limits<snm::Real>::max()));
     SetB(snm::Bytes(address));
@@ -301,7 +301,7 @@ TEST_P(ProcessorTest, Store) {
 TEST_P(ProcessorTest, Jump) {
     constexpr auto opcode = snm::OpCode::JUMP;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte address = 1234;
+    constexpr snm::Address address = 1234;
 
     SetB(snm::Bytes(address));
     Exec(opcode, snm::TypeModifier::W, arg_modifier);
@@ -311,7 +311,7 @@ TEST_P(ProcessorTest, Jump) {
 TEST_P(ProcessorTest, SkipLo_True) {
     constexpr auto opcode = snm::OpCode::SKIP_LOWER;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte target_ip_value = 2;
+    constexpr snm::Address target_ip_value = 2;
 
     SetA(snm::Bytes(1));
     SetB(snm::Bytes(5));
@@ -341,7 +341,7 @@ TEST_P(ProcessorTest, SkipLo_True) {
 TEST_P(ProcessorTest, SkipLo_False) {
     constexpr auto opcode = snm::OpCode::SKIP_LOWER;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte target_ip_value = 1;
+    constexpr snm::Address target_ip_value = 1;
 
     SetA(snm::Bytes(5));
     SetB(snm::Bytes(1));
@@ -371,7 +371,7 @@ TEST_P(ProcessorTest, SkipLo_False) {
 TEST_P(ProcessorTest, SkipEq_True) {
     constexpr auto opcode = snm::OpCode::SKIP_EQUAL;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte target_ip_value = 2;
+    constexpr snm::Address target_ip_value = 2;
 
     SetA(snm::Bytes(5));
     SetB(snm::Bytes(5));
@@ -401,7 +401,7 @@ TEST_P(ProcessorTest, SkipEq_True) {
 TEST_P(ProcessorTest, SkipEq_False) {
     constexpr auto opcode = snm::OpCode::SKIP_EQUAL;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte target_ip_value = 1;
+    constexpr snm::Address target_ip_value = 1;
 
     SetA(snm::Bytes(10));
     SetB(snm::Bytes(5));
@@ -431,7 +431,7 @@ TEST_P(ProcessorTest, SkipEq_False) {
 TEST_P(ProcessorTest, SkipGt_True) {
     constexpr auto opcode = snm::OpCode::SKIP_GREATER;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte target_ip_value = 2;
+    constexpr snm::Address target_ip_value = 2;
 
     SetA(snm::Bytes(10));
     SetB(snm::Bytes(5));
@@ -461,7 +461,7 @@ TEST_P(ProcessorTest, SkipGt_True) {
 TEST_P(ProcessorTest, SkipGt_False) {
     constexpr auto opcode = snm::OpCode::SKIP_GREATER;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte target_ip_value = 1;
+    constexpr snm::Address target_ip_value = 1;
 
     SetA(snm::Bytes(5));
     SetB(snm::Bytes(10));
@@ -491,12 +491,12 @@ TEST_P(ProcessorTest, SkipGt_False) {
 TEST_P(ProcessorTest, JumpNStore) {
     constexpr auto opcode = snm::OpCode::JUMPNSTORE;
     const auto arg_modifier = GetParam();
-    constexpr snm::DoubleByte target_address = 5;
+    constexpr snm::Address target_address = 5;
 
     SetB(snm::Bytes(target_address));
     Exec(opcode, snm::TypeModifier::W, arg_modifier);
     // Проверка, что произошел прыжок
     EXPECT_EQ(GetIP(), target_address + 1);
     // Проверка, что был сохранен возвратный адрес
-    EXPECT_EQ(static_cast<snm::DoubleByte>(ReadMemory(target_address)), 1);
+    EXPECT_EQ(static_cast<snm::Address>(ReadMemory(target_address)), 1);
 }

@@ -31,11 +31,11 @@ void VirtualMachine::Step() {
     processor_->Step();
 }
 
-snm::Bytes VirtualMachine::ReadMemory(const snm::DoubleByte& address) {
+snm::Bytes VirtualMachine::ReadMemory(const snm::Address& address) {
     return memory_manager_->ReadArgument(address);
 }
 
-void VirtualMachine::WriteMemory(const snm::DoubleByte& address, const snm::Bytes& data) {
+void VirtualMachine::WriteMemory(const snm::Address& address, const snm::Bytes& data) {
     memory_manager_->WriteArgument(data, address);
 }
 
@@ -51,7 +51,7 @@ Registers VirtualMachine::GetRegisters() {
     return processor_->GetRegisters();
 }
 
-void VirtualMachine::SetInstructionPointer(const snm::DoubleByte value) {
+void VirtualMachine::SetInstructionPointer(const snm::Address value) {
     processor_->SetInstructionPointer(value);
 }
 

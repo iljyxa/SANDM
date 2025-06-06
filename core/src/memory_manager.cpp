@@ -9,7 +9,7 @@ void MemoryManager::Load(const snm::ByteCode& byte_code) {
     instructions_.reserve(byte_code.size() / 5);
     arguments_.reserve(byte_code.size() / 5);
 
-    if (byte_code.size() > std::numeric_limits<snm::DoubleByte>::max()) {
+    if (byte_code.size() > std::numeric_limits<snm::Address>::max()) {
         throw std::invalid_argument("Command size exceeds available memory. Cannot load instructions.");
     }
 
@@ -17,7 +17,7 @@ void MemoryManager::Load(const snm::ByteCode& byte_code) {
         throw std::invalid_argument("Invalid bytecode format. Unable to parse.");
     }
 
-    snm::DoubleByte address = 0;
+    snm::Address address = 0;
 
     for (size_t i = 0; i < byte_code.size(); i += 5) {
         const snm::Byte code = byte_code[i];
@@ -38,7 +38,7 @@ void MemoryManager::Load(const snm::ByteCode& byte_code) {
     arguments_original_ = arguments_;
 }
 
-std::pair<snm::Byte, snm::Bytes> MemoryManager::ReadInstruction(const snm::DoubleByte address) {
+std::pair<snm::Byte, snm::Bytes> MemoryManager::ReadInstruction(const snm::Address address) {
     if (address > instructions_.size() - 1 || instructions_.empty()) {
         throw std::out_of_range("Instruction address out of range.");
     }
@@ -47,7 +47,7 @@ std::pair<snm::Byte, snm::Bytes> MemoryManager::ReadInstruction(const snm::Doubl
 }
 
 void MemoryManager::WriteInstruction(const snm::Byte code, const snm::Bytes argument,
-                                     const snm::DoubleByte address) {
+                                     const snm::Address address) {
 
     if (instructions_.size() <= address) {
         instructions_.resize(address + 1);
@@ -63,7 +63,7 @@ void MemoryManager::WriteInstruction(const snm::Byte code, const snm::Bytes argu
     arguments_.push_back(argument);
 }
 
-void MemoryManager::WriteArgument(const snm::Bytes argument, const snm::DoubleByte address) {
+void MemoryManager::WriteArgument(const snm::Bytes argument, const snm::Address address) {
     if (arguments_.size() <= address) {
         arguments_.resize(address + 1);
     }
@@ -71,7 +71,7 @@ void MemoryManager::WriteArgument(const snm::Bytes argument, const snm::DoubleBy
     arguments_[address] = argument;
 }
 
-snm::Bytes MemoryManager::ReadArgument(const snm::DoubleByte address) const {
+snm::Bytes MemoryManager::ReadArgument(const snm::Address address) const {
     if (arguments_.size() <= address || arguments_.empty()) {
         return {};
     }

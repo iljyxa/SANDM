@@ -15,12 +15,12 @@ public:
 
     void Load(const snm::ByteCode& byte_code);
 
-    void WriteInstruction(snm::Byte code, snm::Bytes argument, snm::DoubleByte address);
+    void WriteInstruction(snm::Byte code, snm::Bytes argument, snm::Address address);
     void WriteInstruction(snm::Byte code, snm::Bytes argument);
-    std::pair<snm::Byte, snm::Bytes> ReadInstruction(snm::DoubleByte address);
+    std::pair<snm::Byte, snm::Bytes> ReadInstruction(snm::Address address);
 
-    void WriteArgument(snm::Bytes argument, snm::DoubleByte address);
-    [[nodiscard]] snm::Bytes ReadArgument(snm::DoubleByte address) const;
+    void WriteArgument(snm::Bytes argument, snm::Address address);
+    [[nodiscard]] snm::Bytes ReadArgument(snm::Address address) const;
 
     void Reset();
     void ResetData();

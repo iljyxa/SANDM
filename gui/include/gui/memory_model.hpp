@@ -15,11 +15,11 @@ public:
         QAbstractTableModel(parent), vm_controller_(virtual_machine) {
     }
 
-    [[nodiscard]] snm::DoubleByte Address(const QModelIndex& index) const {
+    [[nodiscard]] snm::Address Address(const QModelIndex& index) const {
         return Address(index.row(), index.column());
     }
 
-    [[nodiscard]] snm::DoubleByte Address(const int row, const int column) const {
+    [[nodiscard]] snm::Address Address(const int row, const int column) const {
         return row * columnCount() + column;
     }
 

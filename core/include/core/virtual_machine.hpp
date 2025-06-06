@@ -29,8 +29,8 @@ public:
     VirtualMachine& operator=(VirtualMachine&&) = default;
 
     virtual void Load(const snm::ByteCode& byte_code);
-    [[nodiscard]] virtual snm::Bytes ReadMemory(const snm::DoubleByte& address);
-    virtual void WriteMemory(const snm::DoubleByte& address, const snm::Bytes& data);
+    [[nodiscard]] virtual snm::Bytes ReadMemory(const snm::Address& address);
+    virtual void WriteMemory(const snm::Address& address, const snm::Bytes& data);
 
     virtual void Run();
     virtual void Stop();
@@ -41,7 +41,7 @@ public:
     [[nodiscard]] virtual const snm::ProcessorState& GetState();
     [[nodiscard]] virtual Registers GetRegisters();
 
-    virtual void SetInstructionPointer(snm::DoubleByte value);
+    virtual void SetInstructionPointer(snm::Address value);
     virtual void SetAccumulator(snm::Byte value);
     virtual void SetAccumulator(snm::Word value);
     virtual void SetAccumulator(snm::SignedWord value);
