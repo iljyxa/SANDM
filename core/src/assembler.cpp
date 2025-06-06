@@ -1,10 +1,4 @@
 #include "../include/core/assembler.hpp"
-#include <algorithm>
-#include <cstdint>
-#include <format>
-#include <numeric>
-#include <regex>
-#include <sstream>
 
 Assembler::Assembler() :
     line_number_(0) {

@@ -1,4 +1,3 @@
-#include <iostream>
 
 #include "core/virtual_machine.hpp"
 
@@ -42,6 +41,10 @@ void VirtualMachine::WriteMemory(const snm::DoubleByte& address, const snm::Byte
 
 bool VirtualMachine::IsRunning() {
     return processor_->IsRunning();
+}
+
+const snm::ProcessorState& VirtualMachine::GetState() {
+    return processor_->GetState();
 }
 
 Registers VirtualMachine::GetRegisters() {
@@ -105,7 +108,7 @@ void VirtualMachine::SetProcessorIo(ProcessorIo* processor_io) const {
 std::string VirtualMachine::BytesToString(const snm::Bytes& bytes, const snm::Type& type) {
     switch (type) {
     case snm::Type::BYTE:
-        return std::basic_string(1, static_cast<char>(bytes));
+        return {1, static_cast<char>(bytes)};
     case snm::Type::WORD:
         return std::to_string(static_cast<snm::Word>(bytes));
     case snm::Type::SIGNED_WORD:

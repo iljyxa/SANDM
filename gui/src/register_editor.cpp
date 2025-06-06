@@ -1,5 +1,5 @@
-#include "../include/gui/register_editor.hpp"
-#include <QFormLayout>
+#include "gui/register_editor.hpp"
+
 
 RegisterEditor::RegisterEditor(QWidget* parent) :
     QWidget(parent), accumulator_edit(NewHexEdit(this)), auxiliary_edit(NewHexEdit(this)),

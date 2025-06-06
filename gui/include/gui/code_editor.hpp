@@ -2,11 +2,14 @@
 #define CODE_EDITOR_HPP
 
 #include <QPainter>
+#include <QPainterPath>
 #include <QPlainTextEdit>
+#include <QThreadPool>
 #include <QTimer>
 #include <iostream>
 
 #include "core/assembler.hpp"
+#include "gui/style_colors.hpp"
 #include "gui/syntax_highlighter.hpp"
 
 class CodeEditor final : public QPlainTextEdit {

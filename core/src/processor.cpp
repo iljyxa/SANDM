@@ -1,10 +1,10 @@
-#include "../include/core/processor.hpp"
+#include "core/processor.hpp"
 
 Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, ProcessorIo* io) :
     memory_(memory),
     observer_(observer),
     io_(io),
-    is_running_(false) {
+    state_(snm::ProcessorState::STOPPED) {
     argument_modifiers_[static_cast<uint8_t>(snm::ArgModifier::NONE)] = snm::ArgModifier::NONE;
     argument_modifiers_[static_cast<uint8_t>(snm::ArgModifier::REF)] = snm::ArgModifier::REF;
     argument_modifiers_[static_cast<uint8_t>(snm::ArgModifier::REF_REF)] = snm::ArgModifier::REF_REF;
@@ -196,27 +196,30 @@ Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, Process
 */
 
 void Processor::Run() {
-    SetStatus(true);
+    SetState(snm::ProcessorState::RUNNING);
 
-    while (is_running_) {
-        if (is_waiting_input_) {
+    while (IsRunning()) {
+        if (state_ == snm::ProcessorState::PAUSED_BY_IO) {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
             continue;
         }
 
         ExecuteInstruction();
     }
+
+    SetState(snm::ProcessorState::STOPPED);
 }
 
 void Processor::Step() {
-    SetStatus(true);
+    SetState(snm::ProcessorState::RUNNING);
     ExecuteInstruction();
-    SetStatus(false);
+    if (IsRunning()) {
+        SetState(snm::ProcessorState::PAUSED);
+    }
 }
 
 void Processor::Stop() {
-    is_waiting_input_ = false;
-    SetStatus(false);
+    SetState(snm::ProcessorState::STOPPED);
 }
 
 void Processor::Reset() {
@@ -224,7 +227,7 @@ void Processor::Reset() {
     SetAuxiliary(0);
     SetInstructionPointer(0);
 
-    SetStatus(false);
+    SetState(snm::ProcessorState::STOPPED);
 }
 
 const Registers& Processor::GetRegisters() const {
@@ -259,12 +262,12 @@ void Processor::SetInstructionPointer(const snm::DoubleByte value) {
     }
 
     if (value >= memory_.Size()) {
-        SetStatus(false);
+        SetState(snm::ProcessorState::STOPPED);
     }
 }
 
-const bool& Processor::IsRunning() const {
-    return is_running_;
+const snm::ProcessorState& Processor::GetState() const {
+    return state_;
 }
 
 void Processor::ExecuteInstruction() {
@@ -274,7 +277,7 @@ void Processor::ExecuteInstruction() {
     try {
         std::tie(code, argument) = memory_.ReadInstruction(registers_.instruction_pointer);
     } catch ([[maybe_unused]] std::out_of_range& e) {
-        SetStatus(false);
+        SetState(snm::ProcessorState::STOPPED);
         return;
     }
 
@@ -293,7 +296,7 @@ void Processor::ExecuteInstruction() {
     try {
         instructions_handlers_[handler]();
     } catch ([[maybe_unused]] std::bad_function_call &e) {
-        SetStatus(false);
+        SetState(snm::ProcessorState::STOPPED);
         throw std::runtime_error(std::format("Error while executing: instruction {} at {} undefined",
                                                  std::bitset<8>(handler).to_string(),
                                                  registers_.instruction_pointer));
@@ -321,10 +324,17 @@ snm::Type Processor::TypeIo() {
     return type;
 }
 
-void Processor::SetStatus(const bool is_running) {
-    is_running_ = is_running;
-    if (observer_) {
-        observer_->OnStatusChanged(is_running_);
+void Processor::SetState(const snm::ProcessorState state) {
+    if (state_ != state) {
+        if (state_ == snm::ProcessorState::PAUSED_BY_IO && state == snm::ProcessorState::PAUSED) {
+            // Обработка не требуется
+        } else {
+            state_ = state;
+
+            if (observer_) {
+                observer_->OnStateChanged(state_);
+            }
+        }
     }
 }
 
@@ -412,12 +422,14 @@ void Processor::Store() {
 template <typename T>
 void Processor::Input() {
     if (io_) {
-        is_waiting_input_ = true;
+        SetState(snm::ProcessorState::PAUSED_BY_IO);
 
         io_->InputAsync(TypeIo<T>(), [this](const snm::Bytes bytes) {
-            is_waiting_input_ = false;
-            registers_.accumulator = bytes;
-            NextInstruction();
+            if (state_ == snm::ProcessorState::PAUSED_BY_IO) {
+                SetState(snm::ProcessorState::RUNNING);
+                registers_.accumulator = bytes;
+                NextInstruction();
+            }
         });
     }
 }

@@ -1,9 +1,11 @@
 #ifndef REGISTER_EDITOR_HPP
 #define REGISTER_EDITOR_HPP
 
-#include "hex_spin_box.hpp"
-#include "spin_box_hoverable.hpp"
+#include <QFormLayout>
+
 #include "core/common_definitions.hpp"
+#include "gui/hex_spin_box.hpp"
+#include "gui/spin_box_hoverable.hpp"
 
 class RegisterEditor final : public QWidget {
     Q_OBJECT

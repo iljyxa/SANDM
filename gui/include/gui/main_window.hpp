@@ -2,11 +2,12 @@
 #define MAIN_WINDOW_HPP
 
 #include <QMainWindow>
-#include "code_editor.hpp"
-#include "console.hpp"
+
 #include "core/assembler.hpp"
 #include "core/common_definitions.hpp"
 #include "core/virtual_machine.hpp"
+#include "gui/code_editor.hpp"
+#include "gui/console.hpp"
 #include "gui/memory_model.hpp"
 #include "gui/memory_view.hpp"
 #include "gui/register_editor.hpp"

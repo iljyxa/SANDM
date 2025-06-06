@@ -1,7 +1,7 @@
 #ifndef HEX_SPIN_BOX_HPP
 #define HEX_SPIN_BOX_HPP
 
-#include "spin_box_hoverable.hpp"
+#include "gui/spin_box_hoverable.hpp"
 
 class HexSpinBox final : public SpinBoxHoverable {
     Q_OBJECT

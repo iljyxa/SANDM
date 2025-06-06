@@ -1,15 +1,13 @@
-#include <limits>
-#include <stdexcept>
 
-#include "../include/core/memory_manager.hpp"
+#include "core/memory_manager.hpp"
 
 void MemoryManager::Load(const snm::ByteCode& byte_code) {
     instructions_.clear();
     arguments_.clear();
     arguments_original_.clear();
 
-    instructions_.reserve(byte_code.size());
-    arguments_.reserve(byte_code.size());
+    instructions_.reserve(byte_code.size() / 5);
+    arguments_.reserve(byte_code.size() / 5);
 
     if (byte_code.size() > std::numeric_limits<snm::DoubleByte>::max()) {
         throw std::invalid_argument("Command size exceeds available memory. Cannot load instructions.");

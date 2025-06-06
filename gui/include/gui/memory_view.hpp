@@ -3,7 +3,6 @@
 
 #include <QModelIndex>
 #include <QMouseEvent>
-#include <QPainter>
 #include <QTableView>
 
 class MemoryView final : public QTableView {

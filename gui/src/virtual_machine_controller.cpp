@@ -1,6 +1,5 @@
-#include <utility>
 
-#include "../include/gui/virtual_machine_controller.hpp"
+#include "gui/virtual_machine_controller.hpp"
 
 VirtualMachineController::VirtualMachineController(ProcessorIo* processor_io, QObject* parent) :
     QObject(parent),
@@ -59,16 +58,24 @@ void VirtualMachineController::OnStop() {
 }
 
 void VirtualMachineController::OnStep() {
-
-
     if (state_ == STOPPED) {
+        processor_->Reset();
+        memory_manager_->ResetData();
+
         SetProcessorObserver(this);
         // Так как машина остановлена, необходимо встать на первую инструкцию, но не выполнять ее
         SetState(PAUSED);
     } else {
         SetState(RUNNING);
         VirtualMachine::Step();
-        SetState(PAUSED);
+
+        const snm::ProcessorState state = processor_->GetState();
+        if (state != snm::ProcessorState::STOPPED) {
+            SetState(PAUSED);
+        } else {
+            SetState(STOPPED);
+        }
+
     }
 }
 
@@ -189,5 +196,5 @@ void VirtualMachineController::OnRegisterAuxChanged(const snm::Bytes& auxiliary)
 void VirtualMachineController::OnMemoryChanged(const snm::DoubleByte& address) {
 }
 
-void VirtualMachineController::OnStatusChanged(bool& is_running) {
+void VirtualMachineController::OnStateChanged(const snm::ProcessorState& state) {
 }

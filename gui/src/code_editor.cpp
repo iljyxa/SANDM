@@ -1,8 +1,4 @@
-#include "../include/gui/code_editor.hpp"
-#include "../include/gui/style_colors.hpp"
-
-#include <QPainterPath>
-#include <QThreadPool>
+#include "gui/code_editor.hpp"
 
 CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
     QPlainTextEdit(parent),

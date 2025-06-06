@@ -2,6 +2,8 @@
 #ifndef VIRTUAL_MACHINE_HPP
 #define VIRTUAL_MACHINE_HPP
 
+#include <iostream>
+
 #include "core/memory_manager.hpp"
 #include "core/processor.hpp"
 #include "core/processor_io.hpp"
@@ -36,6 +38,7 @@ public:
     virtual void Reset();
 
     [[nodiscard]] virtual bool IsRunning();
+    [[nodiscard]] virtual const snm::ProcessorState& GetState();
     [[nodiscard]] virtual Registers GetRegisters();
 
     virtual void SetInstructionPointer(snm::DoubleByte value);

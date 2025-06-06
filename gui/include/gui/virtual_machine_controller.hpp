@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QSet>
 #include <QThreadPool>
+#include <utility>
 
 #include "core/processor_observer.hpp"
 #include "core/virtual_machine.hpp"
@@ -60,7 +61,7 @@ public:
     // === Методы-наблюдатели, реализующие интерфейс ProcessorObserver ===
 
     void OnMemoryChanged(const snm::DoubleByte& address) override;
-    void OnStatusChanged(bool& is_running) override;
+    void OnStateChanged(const snm::ProcessorState& state) override;
     void OnRegisterAccChanged(const snm::Bytes& accumulator) override;
     void OnRegisterAuxChanged(const snm::Bytes& auxiliary) override;
     void OnRegisterIpChanged(const snm::DoubleByte& instruction_pointer) override;

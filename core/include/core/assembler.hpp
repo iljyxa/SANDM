@@ -1,10 +1,20 @@
 #ifndef ASSEMBLER_HPP
 #define ASSEMBLER_HPP
 
+#include <algorithm>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <cstdint>
+#include <format>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <numeric>
+#include <regex>
+// ReSharper disable once CppUnusedIncludeDirective
 #include <set>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "core/common_definitions.hpp"
 
 /**

@@ -1,5 +1,6 @@
 #ifndef PROCESSOR_OBSERVER_HPP
 #define PROCESSOR_OBSERVER_HPP
+
 #include "core/common_definitions.hpp"
 
 /**
@@ -33,9 +34,10 @@ public:
     virtual void OnMemoryChanged(const snm::DoubleByte& address) = 0;
     /**
      * @brief Вызывается при изменении статуса процессора.
-     * @param is_running Флаг, указывающий, запущен ли процессор.
+     * @param state Текущее состояние процессора.
+     * @see snm::ProcessorState
      */
-    virtual void OnStatusChanged(bool& is_running) = 0;
+    virtual void OnStateChanged(const snm::ProcessorState& state) = 0;
 
     virtual ~ProcessorObserver() = default;
 };

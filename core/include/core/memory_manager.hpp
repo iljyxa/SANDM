@@ -1,7 +1,12 @@
 #ifndef MEMORY_MANAGER_HPP
 #define MEMORY_MANAGER_HPP
 
+// ReSharper disable once CppUnusedIncludeDirective
+#include <limits>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <stdexcept>
 #include <vector>
+
 #include "core/common_definitions.hpp"
 
 class MemoryManager {
@@ -15,7 +20,7 @@ public:
     std::pair<snm::Byte, snm::Bytes> ReadInstruction(snm::DoubleByte address);
 
     void WriteArgument(snm::Bytes argument, snm::DoubleByte address);
-    snm::Bytes ReadArgument(snm::DoubleByte address) const;
+    [[nodiscard]] snm::Bytes ReadArgument(snm::DoubleByte address) const;
 
     void Reset();
     void ResetData();

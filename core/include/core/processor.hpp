@@ -4,6 +4,7 @@
 // ReSharper disable once CppUnusedIncludeDirective
 #include <bitset>
 #include <functional>
+// ReSharper disable once CppUnusedIncludeDirective
 #include <thread>
 
 #include "core/common_definitions.hpp"
@@ -11,6 +12,13 @@
 #include "core/processor_io.hpp"
 #include "core/processor_observer.hpp"
 
+/**
+ * @struct Registers
+ * @brief Структура, представляющая регистры процессора.
+ *
+ * Содержит основные регистры, необходимые для выполнения инструкций процессора,
+ * такие как аккумулятор, вспомогательный регистр и указатель на текущую инструкцию.
+ */
 struct Registers {
     snm::Bytes accumulator{};
     snm::Bytes auxiliary{};
@@ -58,7 +66,7 @@ public:
      *
      * @return Константная ссылка на структуру Registers, содержащую значения регистров процессора.
      */
-    const Registers& GetRegisters() const;
+    [[nodiscard]] const Registers& GetRegisters() const;
     /**
      * @brief Устанавливает наблюдателя для процессора.
      *
@@ -86,7 +94,7 @@ public:
      *
      * @return Константная ссылка на объект типа `snm::Bytes`, содержащий текущее значение аккумулятора.
      */
-    const snm::Bytes& GetAccumulator() const;
+    [[nodiscard]] const snm::Bytes& GetAccumulator() const;
     /**
      * @brief Возвращает текущее значение регистра указателя инструкций (IP).
      *
@@ -95,7 +103,7 @@ public:
      *
      * @return Константная ссылка на объект типа `snm::DoubleByte`, содержащий текущее значение регистра указателя инструкций.
      */
-    const snm::DoubleByte& GetInstructionPointer() const;
+    [[nodiscard]] const snm::DoubleByte& GetInstructionPointer() const;
     /**
      * @brief Устанавливает значение регистра указателя инструкций (IP).
      *
@@ -114,16 +122,13 @@ public:
      *
      * @return Константная ссылка на объект типа `snm::DoubleByte`, содержащий текущее значение вспомогательного регистра.
      */
-    const snm::Bytes& GetAuxiliary() const;
+    [[nodiscard]] const snm::Bytes& GetAuxiliary() const;
     /**
-     * @brief Проверяет, выполняется ли процессор в текущий момент.
+     * @brief Возвращает текущий статус процессора.
      *
-     * Возвращает текущее состояние процессора, отражающее, находится ли он в режиме выполнения инструкций.
-     * Это позволяет узнать, активен ли процесс выполнения.
-     *
-     * @return Ссылка на логическое значение, указывающее текущее состояние выполнения процессора.
+     * @return Константная ссылка на текущее состояние процессора типа ProcessorState.
      */
-    const bool& IsRunning() const;
+    [[nodiscard]] const snm::ProcessorState& GetState() const;
 
     /**
      * @brief Устанавливает значение регистра аккумулятор.
@@ -159,13 +164,23 @@ public:
         }
     }
 
+    /**
+     * @brief Проверяет, работает ли процессор.
+     *
+     * Метод определяет, находится ли процессор в состоянии, отличном от остановленного.
+     *
+     * @return true, если процессор работает; false, если он остановлен.
+     */
+    [[nodiscard]] bool IsRunning() const {
+        return state_ != snm::ProcessorState::STOPPED;
+    }
+
 private:
     MemoryManager& memory_; ///< Менеджер памяти
     ProcessorObserver* observer_; ///< Текущий наблюдатель состояния
     ProcessorIo* io_; ///< Обработчик ввода-вывода
     Registers registers_;
-    bool is_running_; ///< Указывает, запущен ли процессор в текущий момент
-    std::atomic<bool> is_waiting_input_{false}; ///< Признак, что процессор ожидает завершения ввода извне
+    snm::ProcessorState state_; ///< Состояние процессора в данный момент
 
     std::array<std::function<void()>, std::numeric_limits<snm::Byte>::max() + 1> instructions_handlers_;
     std::array<snm::ArgModifier, 4> argument_modifiers_{};
@@ -189,13 +204,10 @@ private:
      */
     void NextInstruction();
     /**
-     * @brief Устанавливает состояние процессора.
-     *
-     * Метод изменяет флаг выполнения процессора и уведомляет наблюдателя о произошедшем изменении, если он задан.
-     *
-     * @param is_running новое состояние процессора: `true` для запуска, `false` для остановки.
+     * @brief Устанавливает указанный статус процессора.
+     * @param state Новое состояние процессора типа ProcessorState.
      */
-    void SetStatus(bool is_running);
+    void SetState(snm::ProcessorState state);
 
     /**
      * @brief Определяет тип данных в зависимости от переданного шаблонного параметра.
