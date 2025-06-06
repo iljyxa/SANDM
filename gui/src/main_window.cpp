@@ -17,28 +17,35 @@
 #include "../include/gui/main_window.hpp"
 #include "../include/gui/style_colors.hpp"
 
-MainWindow::MainWindow(QWidget* parent) :
-    QMainWindow(parent),
-    vm_controller_(new VirtualMachineController(this)),
-    assembler_(std::make_unique<Assembler>()),
-    code_editor_(new CodeEditor(*assembler_, this)),
-    register_editor_(new RegisterEditor(this)),
-    memory_table_model_(new MemoryModel(*vm_controller_, this)),
-    memory_table_view_(new MemoryView(this)),
-    console_(new Console(this)),
-    tool_bar_(new QToolBar(this)),
-    status_bar_(new QStatusBar(this)),
-    examples_menu_(new QMenu(this)),
-    action_start_(new QAction(this)),
-    action_stop_(new QAction(this)),
-    action_pause_continue_(new QAction(this)),
-    action_debug_(new QAction(this)),
-    action_step_(new QAction(this)),
-    is_bytecode_fresh_(false) {
-    setCentralWidget(code_editor_);
+MainWindow::MainWindow(QWidget* parent)
+    : QMainWindow(parent),
+      vm_controller_(new VirtualMachineController(this)),
+      assembler_(std::make_unique<Assembler>()),
+      code_editor_(new CodeEditor(*assembler_, this)),
+      register_editor_(new RegisterEditor(this)),
+      memory_table_model_(new MemoryModel(*vm_controller_, this)),
+      memory_table_view_(new MemoryView(this)),
+      console_(new Console(this)),
+      tool_bar_(new QToolBar(this)),
+      status_bar_(new QStatusBar(this)),
+      examples_menu_(new QMenu(this)),
+      action_start_(new QAction(this)),
+      action_stop_(new QAction(this)),
+      action_pause_continue_(new QAction(this)),
+      action_debug_(new QAction(this)),
+      action_step_(new QAction(this)),
+      is_bytecode_fresh_(false)
+{
+    SetupUi();
+    SetupConnections();
+    CreateToolBar();
+    CreateMenus();
+    ApplyTheme();
+}
 
+void MainWindow::SetupUi() {
     memory_table_view_->setModel(memory_table_model_);
-    for (int column = 0; column < memory_table_model_->columnCount(); column++) {
+    for (int column = 0; column < memory_table_model_->columnCount(); ++column) {
         memory_table_view_->setColumnWidth(column, 95);
     }
 
@@ -55,13 +62,14 @@ MainWindow::MainWindow(QWidget* parent) :
     horizontal_splitter->addWidget(vertical_splitter);
 
     setCentralWidget(horizontal_splitter);
-
     setStatusBar(status_bar_);
+}
 
+void MainWindow::SetupConnections() {
     connect(memory_table_view_, &MemoryView::CellHovered, this,
-            [this](const int row, const int column, const std::optional<snm::Word> value) {
-                row == -1 ? UpdateStatusBar() : UpdateStatusBar(value.value(), memory_table_model_->Address(row, column));
-            });
+        [this](const int row, const int column, std::optional<snm::Word> value) {
+            row == -1 ? UpdateStatusBar() : UpdateStatusBar(value.value(), memory_table_model_->Address(row, column));
+        });
 
     connect(vm_controller_, &VirtualMachineController::StateChanged, this, &MainWindow::OnStateVmChanged);
     connect(vm_controller_, &VirtualMachineController::Update, this, &MainWindow::OnUpdateVm);
@@ -69,29 +77,22 @@ MainWindow::MainWindow(QWidget* parent) :
     connect(vm_controller_, &VirtualMachineController::ErrorOccurred, this, &MainWindow::OnErrorOccurred);
     connect(vm_controller_, &VirtualMachineController::Reseted, this, &MainWindow::OnCodeChanged);
 
-    connect(register_editor_, &RegisterEditor::AccumulatorEdited, vm_controller_,
-            &VirtualMachineController::OnAccumulatorEdited);
-    connect(register_editor_, &RegisterEditor::AuxiliaryEdited, vm_controller_,
-            &VirtualMachineController::OnAuxiliaryEdited);
-    connect(register_editor_, &RegisterEditor::InstructionPointerEdited, vm_controller_,
-            &VirtualMachineController::OnInstructionPointerEdited);
-    connect(register_editor_, &RegisterEditor::AccumulatorHovered, [this](const bool hovered) {
+    connect(register_editor_, &RegisterEditor::AccumulatorEdited, vm_controller_, &VirtualMachineController::OnAccumulatorEdited);
+    connect(register_editor_, &RegisterEditor::AuxiliaryEdited, vm_controller_, &VirtualMachineController::OnAuxiliaryEdited);
+    connect(register_editor_, &RegisterEditor::InstructionPointerEdited, vm_controller_, &VirtualMachineController::OnInstructionPointerEdited);
+
+    connect(register_editor_, &RegisterEditor::AccumulatorHovered, this, [this](const bool hovered) {
         hovered ? UpdateStatusBar(register_editor_->accumulator_edit->value()) : UpdateStatusBar();
     });
-    connect(register_editor_, &RegisterEditor::AuxiliaryHovered, [this](const bool hovered) {
+    connect(register_editor_, &RegisterEditor::AuxiliaryHovered, this, [this](const bool hovered) {
         hovered ? UpdateStatusBar(register_editor_->auxiliary_edit->value()) : UpdateStatusBar();
     });
 
     connect(code_editor_, &CodeEditor::BreakpointAdded, vm_controller_, &VirtualMachineController::OnInsertBreakpoint);
-    connect(code_editor_, &CodeEditor::BreakpointRemoved, vm_controller_,
-            &VirtualMachineController::OnRemoveBreakpoint);
+    connect(code_editor_, &CodeEditor::BreakpointRemoved, vm_controller_, &VirtualMachineController::OnRemoveBreakpoint);
     connect(code_editor_, &CodeEditor::textChanged, this, &MainWindow::OnCodeChanged);
 
     connect(this, &MainWindow::ThemeApplied, code_editor_, &CodeEditor::OnApplyTheme);
-
-    CreateToolBar();
-    CreateMenus();
-    ApplyTheme();
 }
 
 void MainWindow::CreateMenus() {
@@ -237,8 +238,18 @@ void MainWindow::OnOpenFile() {
 
 void MainWindow::OnSaveFile() {
     if (current_file_path_.isEmpty()) {
-        OnSaveAsFile();
-        return;
+        QString file_name = QFileDialog::getSaveFileName(
+            this,
+            "Сохранить файл",
+            "",
+            "SANDM файлы (*.snm);;Все файлы (*.*)"
+        );
+
+        if (file_name.isEmpty()) return;
+        if (!file_name.endsWith(".snm", Qt::CaseInsensitive)) {
+            file_name += ".snm";
+        }
+        current_file_path_ = file_name;
     }
 
     QFile file(current_file_path_);
@@ -289,7 +300,6 @@ void MainWindow::ShowHelp() {
     });
 
     QString content;
-    //QFile file(":/docs/README.html");
     QFile file(":/README.md");
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         content = file.readAll();
@@ -298,7 +308,6 @@ void MainWindow::ShowHelp() {
         content = "Файл справки не найден";
     }
 
-    //text_browser->setHtml(content);
     text_browser->setMarkdown(content);
 
     // ReSharper disable once CppDFAMemoryLeak
@@ -386,7 +395,6 @@ void MainWindow::SetToolbarActions(const VmState state, bool debugging = false) 
 
 void MainWindow::UpdateStatusBar(const std::optional<snm::Word> value, const int address) const {
     snm::Bytes bytes(value);
-
     QString status_text;
 
     if (!value) {
@@ -407,7 +415,6 @@ void MainWindow::UpdateStatusBar(const std::optional<snm::Word> value, const int
                       .arg(static_cast<snm::Real>(bytes))
                       .arg(QString::fromStdString(bytes.ToBinString()));
     }
-
 
     statusBar()->showMessage(status_text);
 }
@@ -449,11 +456,9 @@ bool MainWindow::UpdateByteCode() {
 
 void MainWindow::OnRun() {
     vm_controller_->ResetProcessor();
-
     if (!UpdateByteCode()) {
         return;
     }
-
     emit vm_controller_->OnRun();
 }
 
@@ -461,17 +466,14 @@ void MainWindow::OnStep() {
     if (vm_controller_->GetState() == STOPPED && !UpdateByteCode()) {
         return;
     }
-
     emit vm_controller_->OnStep();
 }
 
 void MainWindow::OnDebug() {
     vm_controller_->ResetProcessor();
-
     if (!UpdateByteCode()) {
         return;
     }
-
     emit vm_controller_->OnDebug();
 }
 
