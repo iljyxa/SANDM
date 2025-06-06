@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(SANDM LANGUAGES CXX)
+include(version.cmake)
 
-message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
-message(STATUS "QT_DIR: $ENV{QT_DIR}")
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui)
 
 if(NOT Qt6_FOUND)
@@ -12,10 +11,10 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(APP_VERSION_MAJOR 2)
-set(APP_VERSION_MINOR 0)
-set(APP_VERSION_PATCH 0)
-set(APP_VERSION_SUFFIX "alpha")
+configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/version.hpp.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/version.hpp
+)
 
 include(FetchContent)
 
@@ -45,6 +44,8 @@ qt_add_executable(SANDM
         main.cpp
         ${RESOURCES}
 )
+
+target_include_directories(SANDM PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 target_link_libraries(SANDM
         PRIVATE

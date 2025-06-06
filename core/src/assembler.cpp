@@ -20,9 +20,7 @@ Assembler::Assembler() :
 }
 
 snm::ByteCode Assembler::Compile(const std::string& source) {
-    auto [byte_code, source_to_bytecode_map] = CompileInternal(source);
-
-    return byte_code;
+    return CompileInternal(source).first;
 }
 
 std::pair<snm::ByteCode, snm::SourceToBytecodeMap> Assembler::CompileWithDebugInfo(const std::string& source) {
@@ -30,14 +28,7 @@ std::pair<snm::ByteCode, snm::SourceToBytecodeMap> Assembler::CompileWithDebugIn
 }
 
 std::pair<snm::ByteCode, snm::SourceToBytecodeMap> Assembler::CompileInternal(const std::string& source) {
-    snm::ByteCode byte_code{};
-    snm::SourceToBytecodeMap source_to_bytecode_map;
-
-    snm::Address current_bytecode = 0;
-
-    // ReSharper disable once CppUseStructuredBinding
-    auto [instructions, labels_addresses, errors] = ParseSource(source);
-
+    auto [instructions, labels, errors] = ParseSource(source);
     if (!errors.empty()) {
         throw std::runtime_error(std::accumulate(errors.begin(), errors.end(), std::string(),
                                                  [](const std::string& a, const std::string& b) {
@@ -45,95 +36,78 @@ std::pair<snm::ByteCode, snm::SourceToBytecodeMap> Assembler::CompileInternal(co
                                                  }));
     }
 
-    // ReSharper disable once CppUseStructuredBinding
-    for (auto& instruction : instructions) {
-        if (instruction.using_label_name) {
-            std::string label_name_upper = ToUpper(*instruction.using_label_name);
-            if (labels_addresses.contains(label_name_upper)) {
-                instruction.argument = labels_addresses[label_name_upper];
-            } else {
-                throw Exception<std::runtime_error>(std::format("Label {} does not exist",
-                                                    *instruction.using_label_name),
-                                                    instruction.line_number);
+    snm::ByteCode byte_code;
+    snm::SourceToBytecodeMap map;
+    snm::Address current_addr = 0;
+
+    for (auto& instr : instructions) {
+        if (instr.using_label_name) {
+            auto label = ToUpper(*instr.using_label_name);
+            if (!labels.contains(label)) {
+                throw Exception<std::runtime_error>(std::format("Label {} does not exist", *instr.using_label_name),
+                                                    instr.line_number);
             }
+            instr.argument = labels[label];
         }
 
-        snm::Byte instruction_byte_code = snm::InstructionByte(instruction.opcode,
-                                                               instruction.type_modifier,
-                                                               instruction.argument_modifier);
+        byte_code.push_back(snm::InstructionByte(instr.opcode, instr.type_modifier, instr.argument_modifier));
+        for (auto& byte : instr.argument ? *instr.argument : snm::Bytes(0)) byte_code.push_back(byte);
 
-        byte_code.push_back(instruction_byte_code);
-
-        for (auto& i : instruction.argument) {
-            byte_code.push_back(i);
-        }
-
-        source_to_bytecode_map[instruction.line_number] = current_bytecode;
-        current_bytecode++;
+        map[instr.line_number] = current_addr++;
     }
 
-    return std::make_pair(byte_code, source_to_bytecode_map);
+    return {byte_code, map};
 }
 
 std::vector<std::string> Assembler::TestSource(const std::string& source) {
-    auto [instructions, labels_addresses, errors] = ParseSource(source);
+    auto [_, __, errors] = ParseSource(source);
     return errors;
 }
 
-std::tuple<std::vector<Instruction>, std::unordered_map<std::string, uint32_t>, std::vector<std::string>>
-Assembler::ParseSource(
-    const std::string& source) {
+std::tuple<std::vector<Instruction>, std::unordered_map<std::string, snm::Address>, std::vector<std::string>>
+Assembler::ParseSource(const std::string& source) {
     std::vector<Instruction> instructions;
-    std::unordered_map<std::string, uint32_t> labels_addresses;
+    std::unordered_map<std::string, snm::Address> labels;
     std::vector<std::string> errors;
-
     line_number_ = 0;
+    snm::Address address = 0;
 
     std::istringstream stream(source);
-    std::string line = GetLine(stream);
+    for (std::string line; !(line = GetLine(stream)).empty();) {
+        if (address == std::numeric_limits<snm::Address>::max()) {
+            errors.emplace_back("Too many instructions: address overflow");
+            break;
+        }
 
-    uint32_t address = 0;
-
-    while (!line.empty()) {
-        Instruction instruction;
         try {
-            instruction = GetInstruction(line);
+            Instruction instr = GetInstruction(line);
+            if (instr.label_name) {
+                auto name = ToUpper(*instr.label_name);
+                if (labels.contains(name)) {
+                    errors.push_back(std::format("Line {}: Label {} already exists", instr.line_number,
+                                                 *instr.label_name));
+                } else {
+                    labels[name] = address;
+                }
+            }
+            instructions.push_back(std::move(instr));
         } catch (const std::exception& e) {
             errors.emplace_back(e.what());
         }
 
-        if (instruction.label_name) {
-            std::string label_name_upper = ToUpper(*instruction.label_name);
-            if (!labels_addresses.contains(label_name_upper)) {
-                labels_addresses[label_name_upper] = address;
-            } else {
-                errors.emplace_back(std::format("Line {}: Label {} already exists", instruction.line_number, *instruction.label_name));
-            }
-
-        }
-
-        instructions.push_back(instruction);
-
-        line = GetLine(stream);
-        address++;
+        ++address;
     }
 
-    instructions.shrink_to_fit();
-
-    return std::make_tuple(instructions, labels_addresses, errors);
+    return {instructions, labels, errors};
 }
 
 std::string Assembler::GetLine(std::istringstream& stream) {
     std::string line;
-
     while (std::getline(stream, line)) {
-        line_number_++;
-        line = RemoveComment(line);
-        line = Trim(line);
-        if (!line.empty())
-            break;
+        ++line_number_;
+        line = Trim(RemoveComment(line));
+        if (!line.empty()) break;
     }
-
     return line;
 }
 
@@ -148,108 +122,111 @@ T Assembler::Exception(const std::string& message, unsigned int line_number) {
 }
 
 Instruction Assembler::GetInstruction(const std::string& line) {
-    Instruction result;
-    result.line_number = line_number_;
+    Instruction instr;
+    instr.line_number = line_number_;
 
     std::istringstream stream(line);
     std::string token;
 
-    if (stream >> token) {
-        if (token.ends_with(":")) {
-            result.label_name = token.substr(0, token.length() - 1);
-
-            if (!IsValidLabelName(*result.label_name)) {
-                throw Exception<std::invalid_argument>(
-                    std::format("Invalid label name: {}", *result.label_name));
-            }
-        } else {
-            stream.seekg(-static_cast<int>(token.size()),
-                         std::ios_base::cur);
+    // Разбор метки
+    if (stream >> token && token.ends_with(':')) {
+        instr.label_name = token.substr(0, token.size() - 1);
+        if (!IsValidLabelName(*instr.label_name)) {
+            throw Exception<std::invalid_argument>(std::format("Invalid label name: {}", *instr.label_name));
         }
+    } else {
+        stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
     }
 
-    if (stream >> token) {
-        if (auto token_upper = ToUpper(token); opcode_map_.contains(token_upper)) {
-            result.opcode = opcode_map_[token_upper];
-        } else {
-            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
-        }
+    // Опкод
+    if (stream >> token && opcode_map_.contains(ToUpper(token))) {
+        instr.opcode = opcode_map_[ToUpper(token)];
+    } else {
+        stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
     }
 
-    // Чтение модификатора типа
-    if (stream >> token) {
-        auto token_upper = ToUpper(token);
-        if (type_modifier_map_.contains(token_upper)) {
-            auto type_modifier = type_modifier_map_[token_upper];
-            if (snm::OPCODE_PROPERTIES.at(result.opcode).allowed_type_modifiers.contains(type_modifier)) {
-                result.type_modifier = type_modifier;
-            } else {
-                throw Exception<std::domain_error>(
-                    std::format("Modifier {} cannot be used", token));
-            }
-        } else {
-            const auto& properties = snm::OPCODE_PROPERTIES.at(result.opcode);
-            if (properties.allowed_type_modifiers.contains(snm::TypeModifier::SW)) {
-                result.type_modifier = snm::TypeModifier::SW;
-            } else {
-                result.type_modifier = snm::TypeModifier::W;
-            }
-            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
-        }
-    }
+    // Модификаторы типа и аргумента
+    ParseModifiers(stream, instr);
 
-    // Чтение модификатора аргумента
-    if (stream >> token) {
-        auto token_upper = ToUpper(token);
-        if (arg_modifier_map_.contains(token_upper)) {
-            auto argument_modifier = arg_modifier_map_[token_upper];
-            if (snm::OPCODE_PROPERTIES.at(result.opcode).allowed_arg_modifiers.contains(argument_modifier)) {
-                result.argument_modifier = argument_modifier;
-            } else {
-                throw Exception<std::domain_error>(
-                    std::format("Modifier {} cannot be used", token));
-            }
-        } else {
-            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
-        }
-    }
+    // Аргумент
+    ParseArgument(stream, instr);
 
-    // Чтение аргумента
-    if (snm::OPCODE_PROPERTIES.at(result.opcode).is_argument_available
-        && stream >> token) {
-
-        if (token == "'") {
-            if (char next_char; stream.get(next_char)) {
-                token += next_char;
-
-                if (stream.get(next_char)) {
-                    token += next_char;
-                } else {
-                    stream.clear();
-                }
-            } else {
-                stream.clear();
-            }
-        }
-
-        if (IsValidLabelName(token)) {
-            result.using_label_name = token;
-        } else if (IsValidChar(token)) {
-            result.argument = static_cast<int>(token[1]);
-        } else {
-            try {
-                result.argument = ParseNumber(token, result.type_modifier);
-            } catch ([[maybe_unused]] const std::exception& e) {
-                stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
-            }
-        }
-    }
-
+    // Ошибка при наличии лишних токенов
     if (stream >> token) {
         throw Exception<std::runtime_error>(std::format("Invalid instruction: {}", line));
     }
 
-    return result;
+    if (snm::OPCODE_PROPERTIES.at(instr.opcode).is_argument_required
+        && !instr.argument
+        && !instr.using_label_name) {
+        throw Exception<std::runtime_error>(std::format("Argument is required for instruction: {}", line));
+    }
+
+    return instr;
+}
+
+void Assembler::ParseModifiers(std::istringstream& stream, Instruction& instr) {
+    std::string token;
+
+    if (stream >> token) {
+        const auto upper = ToUpper(token);
+        if (type_modifier_map_.contains(upper)) {
+            const auto mod = type_modifier_map_[upper];
+            if (!snm::OPCODE_PROPERTIES.at(instr.opcode).allowed_type_modifiers.contains(mod)) {
+                throw Exception<std::domain_error>(std::format("Modifier {} cannot be used", token));
+            }
+            instr.type_modifier = mod;
+        } else {
+            // Используем тип по умолчанию
+            const auto& props = snm::OPCODE_PROPERTIES.at(instr.opcode);
+            instr.type_modifier = props.allowed_type_modifiers.contains(snm::TypeModifier::SW)
+                ? snm::TypeModifier::SW
+                : snm::TypeModifier::W;
+            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
+        }
+    }
+
+    if (stream >> token) {
+        const auto upper = ToUpper(token);
+        if (arg_modifier_map_.contains(upper)) {
+            const auto mod = arg_modifier_map_[upper];
+            if (!snm::OPCODE_PROPERTIES.at(instr.opcode).allowed_arg_modifiers.contains(mod)) {
+                throw Exception<std::domain_error>(std::format("Modifier {} cannot be used", token));
+            }
+            instr.argument_modifier = mod;
+        } else {
+            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
+        }
+    }
+}
+
+void Assembler::ParseArgument(std::istringstream& stream, Instruction& instr) {
+    if (!snm::OPCODE_PROPERTIES.at(instr.opcode).is_argument_available) return;
+
+    std::string token;
+    if (!(stream >> token)) return;
+
+    // Обработка символа
+    if (token == "'" && stream.peek() != EOF) {
+        char next;
+        token.clear();
+        token += "'";
+        stream.get(next);
+        token += next;
+        if (stream.get(next)) token += next;
+    }
+
+    if (IsValidLabelName(token)) {
+        instr.using_label_name = token;
+    } else if (IsValidChar(token)) {
+        instr.argument = static_cast<int>(token[1]);
+    } else {
+        try {
+            instr.argument = ParseNumber(token, instr.type_modifier);
+        } catch (...) {
+            stream.seekg(-static_cast<int>(token.size()), std::ios_base::cur);
+        }
+    }
 }
 
 bool Assembler::IsArgumentModifier(std::string& token) const {

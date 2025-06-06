@@ -29,7 +29,7 @@ struct Instruction {
     snm::OpCode opcode = snm::OpCode::NOPE; ///< Команда
     snm::ArgModifier argument_modifier = snm::ArgModifier::NONE; ///< Модификатор адреса
     snm::TypeModifier type_modifier = snm::TypeModifier::SW; ///< Модификатор типа
-    snm::Bytes argument{}; ///< Значение аргумента команды
+    std::optional<snm::Bytes> argument{}; ///< Значение аргумента команды
     std::optional<std::string> using_label_name; ///< Имя метки, используемой в качестве аргумента
     std::optional<std::string> label_name; ///< Имя метки этой инструкции
     unsigned int line_number = 0; ///< Номер строки в исходном коде
@@ -206,6 +206,29 @@ private:
      */
     Instruction GetInstruction(const std::string& line);
     /**
+     * @brief Разбирает модификаторы инструкции из входного потока.
+     *
+     * Метод анализирует входной поток, определяет и назначает типовые и аргументные
+     * модификаторы для заданной инструкции. При необходимости использует значения
+     * по умолчанию для модификаторов типа. В случае недопустимости указанного
+     * модификатора выбрасывается исключение.
+     *
+     * @param stream Входной поток, содержащий текстовые представления модификаторов.
+     * @param instr Инструкция, для которой будут назначены модификаторы.
+     */
+    void ParseModifiers(std::istringstream& stream, Instruction& instr);
+    /**
+     * @brief Парсит аргумент инструкции из входящего потока и обновляет указанный объект инструкции.
+     *
+     * Метод обрабатывает входной поток, извлекает следующий токен, проверяет его корректность
+     * как имени ярлыка, символа или числа, и обновляет поля объекта инструкции в соответствии
+     * с результатами.
+     *
+     * @param stream входной поток, содержащий строковое представление инструкций для парсинга.
+     * @param instr объект инструкции, который будет обновлен в зависимости от результата обработки.
+     */
+    void ParseArgument(std::istringstream& stream, Instruction& instr);
+    /**
      * @brief Проверяет, является ли указанный токен модификатором аргумента.
      *
      * Метод определяет, представляет ли строковый токен модификатор аргумента,
@@ -287,7 +310,8 @@ private:
      *         - отображение адресов меток (std::unordered_map<std::string, uint32_t>),
      *         - список ошибок (std::vector<std::string>).
      */
-    std::tuple<std::vector<Instruction>, std::unordered_map<std::string, uint32_t>, std::vector<std::string>> ParseSource(
+    std::tuple<std::vector<Instruction>, std::unordered_map<std::string, snm::Address>, std::vector<std::string>>
+    ParseSource(
         const std::string& source);
 };
 

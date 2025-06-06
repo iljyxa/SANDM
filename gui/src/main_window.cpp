@@ -169,7 +169,7 @@ void MainWindow::LoadExamples() {
 void MainWindow::LoadExampleFromResource(const QString& resource_path) {
     // Проверяем, есть ли несохраненные изменения
     if (!code_editor_->document()->isEmpty()) {
-        QMessageBox::StandardButton reply = QMessageBox::question(
+        const QMessageBox::StandardButton reply = QMessageBox::question(
             this,
             "Подтверждение",
             "Текущий код будет заменен. Продолжить?",
@@ -419,7 +419,12 @@ void MainWindow::Output(snm::Bytes& bytes, snm::Type& type) {
 
 void MainWindow::InputAsync(snm::Type type, InputCallback callback) {
     console_->GetInputStringAsync([this, type, callback](const QString& input) {
-        const snm::Bytes bytes = VirtualMachine::BytesFromString(input.toStdString(), type);
+        snm::Bytes bytes{};
+        try {
+            bytes = VirtualMachine::BytesFromString(input.toStdString(), type);
+        } catch (const std::exception& e) {
+            console_->insertPlainText("\nError: " + QString(e.what()));
+        }
         callback(bytes);
     });
 }

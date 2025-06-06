@@ -1,9 +1,8 @@
+
 #include "gui/code_editor.hpp"
 
 CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
-    QPlainTextEdit(parent),
-    assembler_(assembler),
-    hovered_line_(0) {
+    QPlainTextEdit(parent), assembler_(assembler), hovered_line_(0) {
     // ReSharper disable once CppDFAMemoryLeak
     line_number_area_ = new LineNumberArea(this);
     line_number_area_->installEventFilter(this);
@@ -11,10 +10,11 @@ CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
 
     connect(this, &CodeEditor::blockCountChanged, this, &CodeEditor::UpdateLineNumberAreaWidth);
     connect(this, &CodeEditor::updateRequest, this, &CodeEditor::UpdateLineNumberArea);
+    connect(this, &CodeEditor::textChanged, this, &CodeEditor::OnTextChanged);
 
     UpdateLineNumberAreaWidth(0);
 
-    this->setFont(QFont("Droid Sans Mono", 13));
+    setFont(QFont("Droid Sans Mono", 13));
     QTextOption option = document()->defaultTextOption();
     option.setTabStopDistance(40);
     document()->setDefaultTextOption(option);
@@ -24,8 +24,6 @@ CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
     check_timer_ = new QTimer(this);
     check_timer_->setInterval(1500);
     check_timer_->setSingleShot(true);
-
-    connect(this, &CodeEditor::textChanged, this, &CodeEditor::OnTextChanged);
     connect(check_timer_, &QTimer::timeout, this, &CodeEditor::PerformChecks);
 }
 
@@ -36,7 +34,6 @@ int CodeEditor::LineNumberAreaWidth() const {
         max /= 10;
         ++digits;
     }
-
     return 12 + fontMetrics().horizontalAdvance(QLatin1Char('9')) * digits;
 }
 
@@ -46,7 +43,7 @@ void CodeEditor::OnApplyTheme() {
     highlighter_->rehighlight();
 }
 
-void CodeEditor::UpdateLineNumberAreaWidth(int /* newBlockCount */) {
+void CodeEditor::UpdateLineNumberAreaWidth(int) {
     setViewportMargins(LineNumberAreaWidth(), 0, 0, 0);
 }
 
@@ -62,22 +59,47 @@ void CodeEditor::UpdateLineNumberArea(const QRect& rect, const int dy) {
 
 void CodeEditor::resizeEvent(QResizeEvent* event) {
     QPlainTextEdit::resizeEvent(event);
-
     const QRect cr = contentsRect();
     line_number_area_->setGeometry(QRect(cr.left(), cr.top(), LineNumberAreaWidth(), cr.height()));
+}
+
+void CodeEditor::DrawArrow(QPainter& painter, const int x, const int y) {
+    constexpr int arrow_size = 10;
+    const QPolygonF arrow{
+        QPointF(x, y),
+        QPointF(x + arrow_size, y + arrow_size / 2),
+        QPointF(x, y + arrow_size)
+    };
+    painter.setBrush(QColor(255, 255, 0));
+    painter.setPen(Qt::black);
+    painter.drawPolygon(arrow);
+}
+
+void CodeEditor::DrawCircle(QPainter& painter, const int x, const int y, const bool transparent) {
+    constexpr int circle_size = 14;
+    QColor color(200, 79, 79);
+    if (transparent)
+        color.setAlpha(128);
+    painter.setBrush(color);
+    painter.setPen(Qt::NoPen);
+    painter.drawEllipse(x, y, circle_size, circle_size);
+}
+
+void CodeEditor::DrawLineNumber(QPainter& painter, const int top, const int font_height, const int width,
+                                const int line_number) {
+    const QString number = QString::number(line_number);
+    painter.setPen(StyleColors::LineNumberAreaNumber());
+    painter.drawText(0, top, width, font_height, Qt::AlignRight, number);
 }
 
 void CodeEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const {
     QPainter painter(line_number_area_);
     painter.fillRect(event->rect(), StyleColors::LineNumberAreaBackground());
-
     painter.setPen(StyleColors::LineNumberAreaSplitter());
-    painter.drawLine(line_number_area_->width() - 1, 0,
-                     line_number_area_->width() - 1, line_number_area_->height());
+    painter.drawLine(line_number_area_->width() - 1, 0, line_number_area_->width() - 1, line_number_area_->height());
 
     const QFontMetrics fm = fontMetrics();
     const int font_height = fm.height();
-
     QTextBlock block = firstVisibleBlock();
     int block_number = block.blockNumber();
     int top = qRound(blockBoundingGeometry(block).translated(contentOffset()).top());
@@ -85,51 +107,22 @@ void CodeEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const {
 
     while (block.isValid() && top <= event->rect().bottom()) {
         if (block.isVisible() && bottom >= event->rect().top()) {
-            constexpr int circle_size = 14;
             const int current_line = block_number + 1;
+            const int circle_x = (line_number_area_->width() - 14) / 2;
+            const int circle_y = top + (font_height - 14) / 2;
+            const int arrow_y = top + (font_height - 10) / 2;
 
-            if (highlighted_lines_.contains(current_line)) {
-                constexpr int arrow_size = 10;
-                painter.setBrush(QColor(255, 255, 0)); // Желтый цвет
-                painter.setPen(Qt::black);
+            if (highlighted_lines_.contains(current_line))
+                DrawArrow(painter, 0, arrow_y);
 
-                constexpr int arrow_x = 0;
-                const int arrow_y = top + (font_height - arrow_size) / 2;
+            if (breakpoints_.contains(current_line))
+                DrawCircle(painter, circle_x, circle_y, false);
+            else if (hovered_line_ == current_line)
+                DrawCircle(painter, circle_x, circle_y, true);
 
-                QPolygonF arrow;
-                arrow << QPointF(arrow_x, arrow_y);
-                arrow << QPointF(arrow_x + arrow_size, arrow_y + arrow_size / 2); // NOLINT(*-integer-division)
-                arrow << QPointF(arrow_x, arrow_y + arrow_size);
-                painter.drawPolygon(arrow);
-            }
-
-            if (breakpoints_.contains(current_line)) {
-                painter.setBrush(QColor(200, 79, 79));
-                painter.setPen(Qt::NoPen);
-
-                const int circle_x = (line_number_area_->width() - circle_size) / 2;
-                const int circle_y = top + (font_height - circle_size) / 2;
-
-                painter.drawEllipse(circle_x, circle_y, circle_size, circle_size);
-            } else if (hovered_line_ == current_line) {
-                painter.setBrush(QColor(200, 79, 79, 128));
-                painter.setPen(Qt::NoPen);
-
-                const int circle_x = (line_number_area_->width() - circle_size) / 2;
-                const int circle_y = top + (font_height - circle_size) / 2;
-
-                painter.drawEllipse(circle_x, circle_y, circle_size, circle_size);
-            }
-
-            // Номер строки
-            if (!breakpoints_.contains(current_line)) {
-                QString number = QString::number(current_line);
-                painter.setPen(StyleColors::LineNumberAreaNumber());
-                painter.drawText(0, top, line_number_area_->width(), font_height,
-                                 Qt::AlignRight, number);
-            }
+            if (!breakpoints_.contains(current_line))
+                DrawLineNumber(painter, top, font_height, line_number_area_->width(), current_line);
         }
-
         block = block.next();
         top = bottom;
         bottom = top + qRound(blockBoundingRect(block).height());
@@ -138,39 +131,32 @@ void CodeEditor::LineNumberAreaPaintEvent(const QPaintEvent* event) const {
 }
 
 int CodeEditor::LineNumberAtPosition(const QPoint& pos) const {
-    // Получаем координату Y клика мыши
     const int y = pos.y();
-
-    // Находим блок текста, соответствующий этой координате
     QTextBlock block = firstVisibleBlock();
     int block_number = block.blockNumber();
     int top = qRound(blockBoundingGeometry(block).translated(contentOffset()).top());
     int bottom = top + qRound(blockBoundingRect(block).height());
 
     while (block.isValid() && top <= y) {
-        if (block.isVisible() && bottom >= y) {
-            return block_number + 1; // Возвращаем номер строки (начиная с 1)
-        }
-
+        if (block.isVisible() && bottom >= y)
+            return block_number + 1;
         block = block.next();
         top = bottom;
         bottom = top + qRound(blockBoundingRect(block).height());
         ++block_number;
     }
-
-    return -1; // Если строка не найдена
+    return -1;
 }
 
 void CodeEditor::ToggleBreakpoint(const int line_number) {
     if (breakpoints_.contains(line_number)) {
-        breakpoints_.remove(line_number); // Удаляем точку останова
+        breakpoints_.remove(line_number);
         emit BreakpointRemoved(line_number);
     } else {
-        breakpoints_.insert(line_number); // Добавляем точку останова
+        breakpoints_.insert(line_number);
         emit BreakpointAdded(line_number);
     }
-
-    line_number_area_->update(); // Обновляем область с номерами строк
+    line_number_area_->update();
 }
 
 void CodeEditor::DrawWavyLine(QPainter& painter, const QPointF& start, const QPointF& end) {
@@ -182,46 +168,33 @@ void CodeEditor::DrawWavyLine(QPainter& painter, const QPointF& start, const QPo
     bool up = true;
 
     while (x < end.x()) {
-        constexpr qreal wave_length = 6.0;
-        constexpr qreal wave_height = 2.0;
-        x += wave_length / 2;
-        y += up ? -wave_height : wave_height;
+        x += 3.0; // wave_length / 2
+        y += up ? -2.0 : 2.0; // wave_height
         path.lineTo(x, y);
         up = !up;
     }
-
     painter.drawPath(path);
 }
 
 bool CodeEditor::eventFilter(QObject* obj, QEvent* event) {
     if (obj == line_number_area_) {
-        if (event->type() == QEvent::MouseButtonRelease) {
-            const auto* mouse_event = dynamic_cast<QMouseEvent*>(event);
-            if (const int block_number = LineNumberAtPosition(mouse_event->pos()); block_number != -1) {
-                ToggleBreakpoint(block_number);
+        if (const auto* mouse_event = dynamic_cast<QMouseEvent*>(event)) {
+            if (event->type() == QEvent::MouseButtonRelease) {
+                const int line = LineNumberAtPosition(mouse_event->pos());
+                if (line != -1)
+                    ToggleBreakpoint(line);
+                return true;
             }
-            return true;
-        }
-
-        if (event->type() == QEvent::MouseMove) {
-            const auto* mouse_event = dynamic_cast<QMouseEvent*>(event);
-
-            if (const int block_number = LineNumberAtPosition(mouse_event->pos()); block_number != -1) {
-                line_number_area_->setCursor(Qt::PointingHandCursor);
-                if (hovered_line_ != block_number) {
-                    hovered_line_ = block_number;
+            if (event->type() == QEvent::MouseMove) {
+                const int line = LineNumberAtPosition(mouse_event->pos());
+                line_number_area_->setCursor(line != -1 ? Qt::PointingHandCursor : Qt::ArrowCursor);
+                if (hovered_line_ != line) {
+                    hovered_line_ = line;
                     line_number_area_->update();
                 }
-            } else {
-                line_number_area_->setCursor(Qt::ArrowCursor);
-                if (hovered_line_ != -1) {
-                    hovered_line_ = -1;
-                    line_number_area_->update();
-                }
+                return true;
             }
-            return true;
         }
-
         if (event->type() == QEvent::Leave) {
             line_number_area_->setCursor(Qt::ArrowCursor);
             if (hovered_line_ != -1) {
@@ -235,29 +208,28 @@ bool CodeEditor::eventFilter(QObject* obj, QEvent* event) {
 
 void CodeEditor::paintEvent(QPaintEvent* event) {
     QPlainTextEdit::paintEvent(event);
-
     QPainter painter(viewport());
 
-    // Подсвечиваем строки кода голубым
-    for (const auto line : highlighted_lines_) {
-        if (QTextBlock block = document()->findBlockByNumber(line - 1); block.isValid()) {
+    // Highlight lines
+    for (const unsigned int line : highlighted_lines_) {
+        QTextBlock block = document()->findBlockByNumber(line - 1);
+        if (block.isValid()) {
             QRectF rect = blockBoundingGeometry(block).translated(contentOffset()).toRect();
-            painter.fillRect(QRect(0, rect.y(), viewport()->width(), rect.height()),
-                             QColor(173, 216, 230, 100)); // Полупрозрачный голубой
+            painter.fillRect(QRect(0, rect.y(), viewport()->width(), rect.height()), QColor(173, 216, 230, 100));
         }
     }
 
-    // Отрисовка волнистых линий для ошибок (без изменений)
+    // Underline lines with errors
     painter.setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-    for (const auto i : underlined_lines_) {
-        if (QTextBlock block = document()->findBlockByNumber(i - 1); block.isValid()) {
+    for (const unsigned int line : underlined_lines_) {
+        QTextBlock block = document()->findBlockByNumber(line - 1);
+        if (block.isValid()) {
             QRectF rect = blockBoundingGeometry(block).translated(contentOffset()).toRect();
-            if (QString text = block.text(); !text.isEmpty()) {
+            QString text = block.text();
+            if (!text.isEmpty()) {
                 QFontMetrics fm(block.charFormat().font());
-                const int text_width = fm.horizontalAdvance(text);
-                QPointF start = rect.bottomLeft();
-                QPointF end = rect.bottomLeft() + QPointF(text_width, 0);
-                DrawWavyLine(painter, start, end);
+                const int width = fm.horizontalAdvance(text);
+                DrawWavyLine(painter, rect.bottomLeft(), rect.bottomLeft() + QPointF(width, 0));
             }
         }
     }
@@ -268,9 +240,7 @@ void CodeEditor::OnTextChanged() const {
 }
 
 void CodeEditor::PerformChecks() {
-    QThreadPool::globalInstance()->start([this] {
-        AnalyzeCode();
-    });
+    QThreadPool::globalInstance()->start([this] { AnalyzeCode(); });
 }
 
 void CodeEditor::AnalyzeCode() {
@@ -279,35 +249,28 @@ void CodeEditor::AnalyzeCode() {
     try {
         errors = assembler_.TestSource(toPlainText().toStdString());
     } catch (...) {
-        // Не обрабатывается в данном случае
     }
 
-    for (const auto& error : errors) {
-        const auto line_numbers = FindErrorLineNumbers(QString::fromStdString(error));
-        for (const auto line_number : line_numbers) {
-            underlined_lines_.append(line_number);
-        }
+    for (const auto& err : errors) {
+        for (const int line : FindErrorLineNumbers(QString::fromStdString(err)))
+            underlined_lines_.append(line);
     }
 
     QMetaObject::invokeMethod(this, [this] {
-        viewport()->update();
-    }, Qt::QueuedConnection);
+        viewport()->update(); }, Qt::QueuedConnection);
 }
 
 QVector<unsigned int> CodeEditor::FindErrorLineNumbers(const QString& input) {
     QVector<unsigned int> result;
     const QRegularExpression pattern(R"(Line\s*(\d+):)");
-
-    QRegularExpressionMatchIterator it = pattern.globalMatch(input);
+    auto it = pattern.globalMatch(input);
     while (it.hasNext()) {
         QRegularExpressionMatch match = it.next();
         bool ok;
         const unsigned int number = match.captured(1).toUInt(&ok);
-        if (ok) {
+        if (ok)
             result.append(number);
-        }
     }
-
     return result;
 }
 
@@ -326,16 +289,13 @@ void CodeEditor::ClearHighlightedLines() {
 void CodeEditor::ApplyTheme() {
     QPalette palette = this->palette();
     palette.setColor(QPalette::Text, StyleColors::CodeEditorOther());
-    this->setPalette(palette);
+    setPalette(palette);
 }
 
 void CodeEditor::ScrollToLine(const int line_number) {
-    // Получаем блок текста по номеру строки (нумерация с 0)
-
-    if (const QTextBlock block = document()->findBlockByNumber(line_number - 1); block.isValid()) {
-        const QTextCursor cursor(block);
-        setTextCursor(cursor);
-
+    const QTextBlock block = document()->findBlockByNumber(line_number - 1);
+    if (block.isValid()) {
+        setTextCursor(QTextCursor(block));
         centerCursor();
     }
 }

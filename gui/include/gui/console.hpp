@@ -37,11 +37,6 @@ public:
     }
 
     void GetInputStringAsync(const InputCallback& callback) {
-        if (is_waiting_input_) {
-            callback("");
-            return;
-        }
-
         current_callback_ = callback;
         is_waiting_input_ = true;
         input_start_pos_ = textCursor().position();
