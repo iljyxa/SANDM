@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
 
 #include "core/processor.hpp"
+#include "core/assembler.hpp"
 
 class ProcessorTest : public testing::Test, public testing::WithParamInterface<snm::ArgModifier> {
 public:
+    std::unique_ptr<MemoryManager> memory;
+    std::unique_ptr<Processor> processor;
+
     void SetA(const snm::Bytes value) const {
-        processor_->SetAccumulator(value);
+        processor->SetAccumulator(value);
     }
 
     void SetB(const snm::Bytes value) {
@@ -15,33 +19,33 @@ public:
     void WriteInstruction(const snm::OpCode opcode, const snm::TypeModifier type_modifier,
                           const snm::ArgModifier arg_modifier, const snm::Bytes argument,
                           const snm::Address address) const {
-        memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), argument, address);
+        memory->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), argument, address);
     }
 
     void Step() const {
-        processor_->Step();
+        processor->Step();
     }
 
     [[nodiscard]] snm::Bytes Calc(const snm::OpCode opcode, const snm::TypeModifier type_modifier,
                                   const snm::ArgModifier arg_modifier) const {
         if (arg_modifier == snm::ArgModifier::REF) {
             constexpr snm::Address address = 256;
-            memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address));
-            memory_->WriteArgument(argument_, address);
+            memory->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address));
+            memory->WriteArgument(argument_, address);
         } else if (arg_modifier == snm::ArgModifier::REF_REF) {
             constexpr snm::Address address_pointer = 9000;
             constexpr snm::Address address_value = 10000;
 
-            memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address_pointer));
-            memory_->WriteArgument(argument_, address_value);
-            memory_->WriteArgument(snm::Bytes(address_value), address_pointer);
+            memory->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address_pointer));
+            memory->WriteArgument(argument_, address_value);
+            memory->WriteArgument(snm::Bytes(address_value), address_pointer);
         } else {
-            memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), argument_);
+            memory->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), argument_);
         }
 
-        processor_->Step();
+        processor->Step();
 
-        const snm::Bytes result = processor_->GetAccumulator();
+        const snm::Bytes result = processor->GetAccumulator();
 
         Reset();
 
@@ -52,46 +56,44 @@ public:
               const snm::ArgModifier arg_modifier) const {
         if (arg_modifier == snm::ArgModifier::REF) {
             constexpr snm::Address address = 256;
-            memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address));
-            memory_->WriteArgument(argument_, address);
+            memory->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address));
+            memory->WriteArgument(argument_, address);
         } else if (arg_modifier == snm::ArgModifier::REF_REF) {
             constexpr snm::Address address_pointer = 9000;
             constexpr snm::Address address_value = 10000;
 
-            memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address_pointer));
-            memory_->WriteArgument(argument_, address_value);
-            memory_->WriteArgument(snm::Bytes(address_value), address_pointer);
+            memory->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), snm::Bytes(address_pointer));
+            memory->WriteArgument(argument_, address_value);
+            memory->WriteArgument(snm::Bytes(address_value), address_pointer);
         } else {
-            memory_->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), argument_);
+            memory->WriteInstruction(snm::InstructionByte(opcode, type_modifier, arg_modifier), argument_);
         }
 
-        processor_->Step();
+        processor->Step();
     }
 
     [[nodiscard]] snm::Bytes ReadMemory(const snm::Address address) const {
-        return memory_->ReadArgument(address);
+        return memory->ReadArgument(address);
     }
 
     // ReSharper disable once CppInconsistentNaming
     [[nodiscard]] snm::Address GetIP() const {
-        return processor_->GetInstructionPointer();
+        return processor->GetInstructionPointer();
     }
 
     void Reset() const {
-        memory_->Reset();
-        processor_->Reset();
+        memory->Reset();
+        processor->Reset();
     }
 
     void SetUp() override {
-        memory_ = std::make_unique<MemoryManager>();
-        processor_ = std::make_unique<Processor>(*memory_);
+        memory = std::make_unique<MemoryManager>();
+        processor = std::make_unique<Processor>(*memory);
     }
     void TearDown() override {
         Reset();
     }
 private:
-    std::unique_ptr<MemoryManager> memory_;
-    std::unique_ptr<Processor> processor_;
     snm::Bytes argument_ = {};
 };
 
@@ -112,6 +114,68 @@ INSTANTIATE_TEST_SUITE_P(
         }
     }
 );
+
+TEST_F(ProcessorTest, ExecuteSimpleProgram) {
+    const std::string source = R"(
+        string_hello_world: 'H'
+        'e'
+        'l'
+        'l'
+        'o'
+        ' '
+        'W'
+        'o'
+        'r'
+        'l'
+        'd'
+        '!'
+        0x00
+
+        Load string_hello_world
+        JnS Print
+        Jump end
+
+        // Функция вывода ascii-строки
+        // В регистре должен хранится адрес первого символа
+        // Вывод происходит до первого 0 (си-строка)
+        // Вывод завершается символами CRLF
+        Print:
+	        Print_STR: 0 // Адрес текущего символа
+	        Print_ACC_original: 0 // Для восстановления значения регистра
+	        Store Print_str
+	        Store Print_ACC_original
+
+	        Print_Loop:
+		        Load && Print_str // Загрузка символа в регистр
+		        SkipGt C 0	        // Проверка, что 0 не достигнут
+		        Jump Print_End    // Если достигнут, то переход к завершению вызова
+		        Output C          // Иначе вывод символа
+
+		        // Увеличение адреса текущего символа на 1
+		        Load & Print_str
+		        Add 1
+		        Store Print_str
+
+		        Jump Print_Loop
+
+	        Print_End:
+	        // Вывод символов CRLF
+	        Load 0x0D
+	        Output C
+	        Load 0x0A
+	        Output C
+
+	        Load Print_ACC_original // Восстановление значения регистра на момент вызова
+	        Jump & Print            // Возврат из функции
+
+        end:
+    )";
+
+    Assembler assembler{};
+    const snm::ByteCode byte_code = assembler.Compile(source);
+    memory->Load(byte_code);
+    ASSERT_NO_THROW(processor->Run());
+}
 
 TEST_P(ProcessorTest, Add) {
     constexpr auto opcode = snm::OpCode::ADD;
