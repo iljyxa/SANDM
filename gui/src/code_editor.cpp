@@ -16,8 +16,11 @@ CodeEditor::CodeEditor(Assembler& assembler, QWidget* parent) :
 
     setFont(QFont("Droid Sans Mono", 13));
     QTextOption option = document()->defaultTextOption();
-    option.setTabStopDistance(40);
+    option.setTabStopDistance(fontMetrics().horizontalAdvance(' ') * 4);
     document()->setDefaultTextOption(option);
+
+    setLineWrapMode(NoWrap);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 
     highlighter_ = new Highlighter(document());
 
@@ -61,6 +64,28 @@ void CodeEditor::resizeEvent(QResizeEvent* event) {
     QPlainTextEdit::resizeEvent(event);
     const QRect cr = contentsRect();
     line_number_area_->setGeometry(QRect(cr.left(), cr.top(), LineNumberAreaWidth(), cr.height()));
+}
+
+void CodeEditor::keyPressEvent(QKeyEvent* e) {
+    if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
+
+        QTextCursor cursor = textCursor();
+        const QTextBlock current_block = cursor.block();
+        const QString current_text = current_block.text();
+
+        QString indent;
+        for (int i = 0; i < current_text.length(); ++i) {
+            if (current_text.at(i).isSpace()) {
+                indent += current_text.at(i);
+            } else {
+                break;
+            }
+        }
+
+        cursor.insertText("\n" + indent);
+    } else {
+        QPlainTextEdit::keyPressEvent(e);
+    }
 }
 
 void CodeEditor::DrawArrow(QPainter& painter, const int x, const int y) {

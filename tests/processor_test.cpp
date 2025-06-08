@@ -1,7 +1,6 @@
-#include "core/processor.hpp"
-
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include "core/processor.hpp"
 
 class ProcessorTest : public testing::Test, public testing::WithParamInterface<snm::ArgModifier> {
 public:

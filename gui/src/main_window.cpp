@@ -113,19 +113,16 @@ void MainWindow::CreateMenus() {
     emulator_menu->addAction(action_debug_);
     emulator_menu->addAction(action_stop_);
 
-    // Добавляем новую команду "Сбросить"
     // ReSharper disable once CppDFAMemoryLeak
-    const auto action_reset = new QAction("Сбросить", this);
+    const auto action_reset = new QAction("Сбросить состояние", this);
     connect(action_reset, &QAction::triggered, vm_controller_, &VirtualMachineController::OnReset);
     emulator_menu->addAction(action_reset);
 
-    // Меню примеров
     examples_menu_ = menuBar()->addMenu("Примеры");
     LoadExamples();
 
     CreateSettingsMenu();
 
-    // Меню помощи
     QMenu* help_menu = menuBar()->addMenu("Помощь");
     const QAction* help_action = help_menu->addAction("Справка", QKeySequence(Qt::Key_F1));
     const QAction* about_action = help_menu->addAction("О программе");

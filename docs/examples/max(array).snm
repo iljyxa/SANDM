@@ -1,0 +1,68 @@
+// Пример массива
+array: 6 // Количество элементов. Далее 6 элементов этого массива
+5
+-1
+3
+23
+0
+-123
+
+Load array
+JnS array_find_max
+Output SW // Вывод результата в консоль
+Load 0x0D // Перенос строки
+Output C
+Jump halt
+
+// Функция поиска максимального значения элементов массива
+// ACC - адрес начала массива
+// Первый элемент массива содержит число элементов, следующим за ним
+// Элементы массива - знаковые целые числа
+// Максимальное значение массива возвращается в ACC
+array_find_max:
+	afm_ACC_original: 0 // Исходный адрес
+	afm_array_size: 0   // Размер массива
+	afm_array_begin: 0  // Адрес начала элементов массива
+	afm_array_end: 0    // Адрес последнего элемента массива
+	afm_result: 0x80000000 // Максимальное значение инициализируем минимальным для типа SW
+	Store afm_ACC_original
+	
+	// Получаем значение из начального адреса - это количество элементов
+	Load && afm_ACC_original
+	Store afm_array_size
+	
+	// Начальный адрес + 1 это адрес начала элементов
+	Load & afm_ACC_original
+	Add 1
+	Store afm_array_begin
+	
+	// Адрес начала + количество элементов - 1
+	Add & afm_array_size
+	Sub 1
+	Store afm_array_end	
+	
+	afm_iter: 0 // Адрес текущего элемента
+	Load & afm_array_begin
+	Store afm_iter
+
+	afm_loop:
+		Load & afm_iter
+		SkipLo & afm_array_end        
+		Jump afm_end
+		
+		Load && afm_iter
+		SkipLo & afm_result
+		Store afm_result
+		
+		// Инкремент "итератора"
+		Load & afm_iter
+		Add 1
+		Store afm_iter
+		// Переход к следующей итерации
+		Jump afm_loop
+
+	afm_end:
+	Load & afm_result
+	Jump & array_find_max
+
+halt:

@@ -1,9 +1,6 @@
-#include "core/assembler.hpp"
-
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../core/include/core/common_definitions.hpp"
+#include "core/assembler.hpp"
 
 struct TestParams {
     snm::OpCode opcode;

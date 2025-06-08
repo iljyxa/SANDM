@@ -41,6 +41,7 @@ private slots:
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void keyPressEvent(QKeyEvent *e) override;
     static void DrawArrow(QPainter& painter, int x, int y);
     static void DrawCircle(QPainter& painter, int x, int y, bool transparent);
     static void DrawLineNumber(QPainter& painter, int top, int font_height, int width, int line_number);

@@ -15,5 +15,6 @@
         <file>docs/examples/max(A, B).snm</file>
         <file>docs/examples/bubble_sort(array).snm</file>
         <file>docs/examples/print(str).snm</file>
+        <file>docs/examples/max(array).snm</file>
     </qresource>
 </RCC>
