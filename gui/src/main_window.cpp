@@ -66,6 +66,8 @@ void MainWindow::SetupUi() {
 }
 
 void MainWindow::SetupConnections() {
+    connect(this, &MainWindow::OutputReady, this, &MainWindow::Output, Qt::QueuedConnection);
+
     connect(memory_table_view_, &MemoryView::CellHovered, this,
         [this](const int row, const int column, std::optional<snm::Word> value) {
             row == -1 ? UpdateStatusBar() : UpdateStatusBar(value.value(), memory_table_model_->Address(row, column));
@@ -332,20 +334,51 @@ void MainWindow::ShowAbout() {
         "<center>"
         "<h1>SANDM</h1>"
         "<p>Simple Assembler Non-stack Demo Machine</p>"
+        "<p><img src=':/resources/icons/sandm.svg' width='64' height='64'></p>"
         "<p><b>Версия: %1</b></p>"
         "<p>Сборка от %2 в %3</p>"
+        "<hr>"
+        "<p>Автор: %4</p>"
+        "<p>Лицензия: <a href='%5'>MIT License</a></p>"
+        "<p>Исходный код: <a href='%6'>GitHub Repository</a></p>"
         "</center>"
         ).arg(
         QApplication::applicationVersion(),
         QString(__DATE__),
-        QString(__TIME__)
+        QString(__TIME__),
+        "Федоров Илья",
+        "https://opensource.org/licenses/MIT",
+        "https://github.com/iljyxa/SANDM"
         );
 
-    QMessageBox about_box;
-    about_box.setWindowTitle("О программе");
-    about_box.setText(about_text);
-    about_box.setIconPixmap(QPixmap(":/resources/icons/sandm.svg").scaled(64, 64));
-    about_box.exec();
+    QDialog about_dialog(this);
+    about_dialog.setWindowTitle("О программе");
+    about_dialog.setMinimumSize(400, 300);
+
+    // ReSharper disable once CppDFAMemoryLeak
+    const auto layout = new QVBoxLayout(&about_dialog);
+
+    // Добавляем QLabel с текстом
+    // ReSharper disable once CppDFAMemoryLeak
+    const auto label = new QLabel(&about_dialog);
+    label->setText(about_text);
+    label->setTextFormat(Qt::RichText);
+    label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    label->setOpenExternalLinks(true);
+    label->setAlignment(Qt::AlignCenter);
+    layout->addWidget(label);
+
+    // ReSharper disable once CppDFAMemoryLeak
+    const auto button_box = new QDialogButtonBox(QDialogButtonBox::Ok, &about_dialog);
+    layout->addWidget(button_box);
+
+    connect(button_box, &QDialogButtonBox::accepted, &about_dialog, &QDialog::accept);
+
+    connect(label, &QLabel::linkActivated, [](const QString& link) {
+        QDesktopServices::openUrl(QUrl(link));
+    });
+
+    about_dialog.exec();
 }
 
 void MainWindow::CreateToolBar() {
@@ -416,23 +449,6 @@ void MainWindow::UpdateStatusBar(const std::optional<snm::Word> value, const int
     statusBar()->showMessage(status_text);
 }
 
-void MainWindow::Output(snm::Bytes& bytes, snm::Type& type) {
-    const QString output_string(VirtualMachine::BytesToString(bytes, type).data());
-    console_->insertPlainText(output_string);
-}
-
-void MainWindow::InputAsync(snm::Type type, InputCallback callback) {
-    console_->GetInputStringAsync([this, type, callback](const QString& input) {
-        snm::Bytes bytes{};
-        try {
-            bytes = VirtualMachine::BytesFromString(input.toStdString(), type);
-        } catch (const std::exception& e) {
-            console_->insertPlainText("\nError: " + QString(e.what()));
-        }
-        callback(bytes);
-    });
-}
-
 bool MainWindow::UpdateByteCode() {
     if (is_bytecode_fresh_) {
         return true;
@@ -479,7 +495,7 @@ void MainWindow::OnStateVmChanged(const VmState state, const bool debugging) con
     code_editor_->ClearHighlightedLines();
     if (state == PAUSED) {
         const unsigned int current_line = vm_controller_->GetCurrentCodeLine();
-        code_editor_->ScrollToLine(current_line);
+        code_editor_->ScrollToLine(current_line); // NOLINT(*-narrowing-conversions)
         code_editor_->HighlightLine(current_line);
     }
 
@@ -563,4 +579,34 @@ void MainWindow::ApplyTheme() {
     this->setAutoFillBackground(true);
 
     emit ThemeApplied();
+}
+
+void MainWindow::InputRequest(snm::Type type, InputCallback callback) {
+    if (!console_) {
+        callback({});
+        return;
+    }
+    console_->GetInputStringAsync([this, type, callback](const QString& input) {
+        snm::Bytes bytes{};
+        try {
+            bytes = VirtualMachine::BytesFromString(input.toStdString(), type);
+        } catch (const std::exception& e) {
+            console_->insertPlainText("\nError: " + QString(e.what()));
+        }
+        callback(bytes);
+    });
+}
+
+void MainWindow::OutputRequest(const snm::Bytes bytes, const snm::Type type) {
+    emit OutputReady(bytes, type);
+}
+
+void MainWindow::Output(const snm::Bytes bytes, const snm::Type type) const {
+    if (!console_) {
+        return;
+    }
+    const auto result = VirtualMachine::BytesToString(bytes, type);
+    if (!result.empty()) {
+        console_->insertPlainText(QString::fromStdString(result));
+    }
 }

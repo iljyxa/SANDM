@@ -13,14 +13,14 @@ public:
      * @param type - тип вводимых данных
      * @param callback - функция обратного вызова для передачи результата
      */
-    virtual void InputAsync(snm::Type type, InputCallback callback) = 0;
+    virtual void InputRequest(snm::Type type, InputCallback callback) = 0;
 
     /**
      * Вывод данных
      * @param bytes - данные для вывода
      * @param type - тип данных
      */
-    virtual void Output(snm::Bytes& bytes, snm::Type& type) = 0;
+    virtual void OutputRequest(snm::Bytes bytes, snm::Type type) = 0;
 
     virtual ~ProcessorIo() = default;
 };

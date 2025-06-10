@@ -2,6 +2,8 @@
 #define MAIN_WINDOW_HPP
 
 #include <QMainWindow>
+// ReSharper disable once CppUnusedIncludeDirective
+#include <QLabel>
 
 #include "core/assembler.hpp"
 #include "core/common_definitions.hpp"
@@ -34,6 +36,15 @@ signals:
      * @brief Сигнал, испускаемый при применении новой темы
      */
     void ThemeApplied();
+    /**
+     * @brief Сигнал готовности данных для вывода
+     *
+     * Внутренний сигнал для асинхронного вывода
+     *
+     * @param bytes Данные, готовые для вывода, в формате байтов
+     * @param type Тип данных, указывающий способ их интерпретации
+     */
+    void OutputReady(snm::Bytes bytes, snm::Type type);
 
 private slots:
     // === Управление виртуальной машиной ===
@@ -101,7 +112,7 @@ private slots:
 
     // === Справка и информация ===
     void ShowHelp();
-    static void ShowAbout();
+    void ShowAbout();
 
 private:
     // === Компоненты интерфейса ===
@@ -236,7 +247,7 @@ private:
      * @param type Тип данных, который требуется преобразовать из строки
      * @param callback Обратный вызов, принимающий преобразованный массив байтов
      */
-    void InputAsync(snm::Type type, InputCallback callback) override;
+    void InputRequest(snm::Type type, InputCallback callback) override;
     /**
      * @brief Выводит данные на консоль приложения
      *
@@ -246,7 +257,8 @@ private:
      * @param bytes Ссылка на объект, представляющий массив байтов для вывода
      * @param type Ссылка на объект, определяющий тип данных для преобразования
      */
-    void Output(snm::Bytes& bytes, snm::Type& type) override;
+    void OutputRequest(snm::Bytes bytes, snm::Type type) override;
+    void Output(snm::Bytes bytes, snm::Type type) const;
 };
 
 #endif

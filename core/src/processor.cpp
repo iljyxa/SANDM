@@ -189,6 +189,11 @@ Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, Process
         JumpAndStore();
     };
 
+    // Halt
+    instructions_handlers_[InstructionByte(snm::OpCode::HALT, snm::TypeModifier::C)] = [this] {
+        Halt();
+    };
+
 }
 
 /*
@@ -281,16 +286,22 @@ void Processor::ExecuteInstruction() {
         return;
     }
 
-    const snm::Byte handler = code & 0b11111100;
-    const snm::ArgModifier arg_modifier = argument_modifiers_[code & 0b00000011];
+    snm::Byte handler;
 
-    if (arg_modifier == snm::ArgModifier::REF) {
-        SetAuxiliary(memory_.ReadArgument(static_cast<snm::Word>(argument)));
-    } else if (arg_modifier == snm::ArgModifier::REF_REF) {
-        SetAuxiliary(
-            memory_.ReadArgument(static_cast<snm::Word>(memory_.ReadArgument(static_cast<snm::Word>(argument)))));
+    if (code == std::numeric_limits<snm::Byte>::max()) {
+        handler = code;
     } else {
-        SetAuxiliary(argument);
+        handler = code & 0b11111100;
+        const snm::ArgModifier arg_modifier = argument_modifiers_[code & 0b00000011];
+
+        if (arg_modifier == snm::ArgModifier::REF) {
+            SetAuxiliary(memory_.ReadArgument(static_cast<snm::Word>(argument)));
+        } else if (arg_modifier == snm::ArgModifier::REF_REF) {
+            SetAuxiliary(
+                memory_.ReadArgument(static_cast<snm::Word>(memory_.ReadArgument(static_cast<snm::Word>(argument)))));
+        } else {
+            SetAuxiliary(argument);
+        }
     }
 
     try {
@@ -424,7 +435,7 @@ void Processor::Input() {
     if (io_) {
         SetState(snm::ProcessorState::PAUSED_BY_IO);
 
-        io_->InputAsync(TypeIo<T>(), [this](const snm::Bytes bytes) {
+        io_->InputRequest(TypeIo<T>(), [this](const snm::Bytes bytes) {
             if (state_ == snm::ProcessorState::PAUSED_BY_IO) {
                 SetState(snm::ProcessorState::RUNNING);
                 registers_.accumulator = bytes;
@@ -439,7 +450,7 @@ void Processor::Output() {
     snm::Type type = TypeIo<T>();
 
     if (io_) {
-        io_->Output(registers_.accumulator, type);
+        io_->OutputRequest(registers_.accumulator, type);
     }
 
     NextInstruction();
@@ -489,3 +500,6 @@ void Processor::JumpAndStore() {
     SetInstructionPointer(address + 1);
 }
 
+void Processor::Halt() {
+    Stop();
+}

@@ -54,8 +54,8 @@ public:
     void SetProcessorObserver(ProcessorObserver* observer) const;
     void SetProcessorIo(ProcessorIo* processor_io) const;
 
-    void Output(snm::Bytes& bytes, snm::Type& type) override;
-    void InputAsync(snm::Type type, InputCallback callback) override;
+    void OutputRequest(snm::Bytes bytes, snm::Type type) override;
+    void InputRequest(snm::Type type, InputCallback callback) override;
 
     static std::string BytesToString(const snm::Bytes& bytes, const snm::Type& type);
     static snm::Bytes BytesFromString(const std::string& string, const snm::Type& type);

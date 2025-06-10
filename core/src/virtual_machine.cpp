@@ -87,11 +87,11 @@ void VirtualMachine::SetAuxiliary(const snm::Real value) {
     processor_->SetAuxiliary(value);
 }
 
-void VirtualMachine::Output(snm::Bytes& bytes, snm::Type& type) {
+void VirtualMachine::OutputRequest(const snm::Bytes bytes, const snm::Type type) {
     std::cout << BytesToString(bytes, type) << std::endl;
 }
 
-void VirtualMachine::InputAsync(const snm::Type type, const InputCallback callback) {
+void VirtualMachine::InputRequest(const snm::Type type, const InputCallback callback) {
     std::string input_string;
     std::cin >> input_string;
     callback(BytesFromString(input_string, type));

@@ -246,6 +246,7 @@ private:
     template <class T>
     void SkipEqual();
     void JumpAndStore();
+    void Halt();
 };
 
 #endif

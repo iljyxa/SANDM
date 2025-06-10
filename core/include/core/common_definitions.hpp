@@ -16,7 +16,12 @@ namespace snm {
      * Определяет набор команд, которые процессор может выполнять.
      */
     enum class OpCode {
-        NOPE = 0, ADD, SUB, MUL, DIV, MOD, LOAD, STORE, INPUT, OUTPUT, JUMP, JUMPNSTORE, SKIP_LOWER, SKIP_GREATER, SKIP_EQUAL
+        NOPE = 0,
+        ADD, SUB, MUL, DIV, MOD,
+        LOAD, STORE,
+        INPUT, OUTPUT,
+        JUMP, JUMPNSTORE, SKIP_LOWER, SKIP_GREATER, SKIP_EQUAL,
+        HALT
     };
 
     /**
@@ -258,6 +263,16 @@ namespace snm {
                 true,
                 "JNS"
             }
+        },
+        {
+            OpCode::HALT,
+            {
+                    { },
+                    {ArgModifier::NONE},
+                    false,
+                    false,
+                    "HALT"
+                }
         }
     };
 
@@ -266,6 +281,7 @@ namespace snm {
      *
      * Формирует 8-битный код инструкции, объединяя переданные значения согласно их битовому смещению.
      * Первые 4 бита представляют код операции (опкод), следующие 2 бита модификатор типа и последние 2 бита подификатор аргумента.
+     * Исключением является HALT - константное значение 11111111
      *
      * @param opcode Код операции (опкод), задающий основную команду процессора.
      * @param type_modifier Модификатор типа, определяющий особенности обработки данных.
@@ -275,6 +291,10 @@ namespace snm {
      * @return 8-битное представление инструкции в формате Byte (unsigned char).
      */
     inline Byte InstructionByte(OpCode opcode, TypeModifier type_modifier, ArgModifier argument_modifier = ArgModifier::NONE) {
+        if (opcode == OpCode::HALT) {
+            return std::numeric_limits<Byte>::max();
+        }
+
         return static_cast<uint8_t>(static_cast<uint8_t>(opcode) << 4) |
                static_cast<uint8_t>(static_cast<uint8_t>(type_modifier) << 2) |
                static_cast<uint8_t>(argument_modifier);

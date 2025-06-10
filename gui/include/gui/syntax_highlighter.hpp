@@ -3,6 +3,8 @@
 
 #include <QRegularExpression>
 #include <QSyntaxHighlighter>
+#include <ranges>
+
 #include "gui/style_colors.hpp"
 
 class Highlighter final : public QSyntaxHighlighter {
@@ -20,14 +22,17 @@ public:
         // Команды
         QTextCharFormat keyword_format;
         keyword_format.setForeground(StyleColors::CodeEditorKeyword());
-        const QString keyword_patterns[] = {
-            QStringLiteral("\\bNOPE\\b"), QStringLiteral("\\bADD\\b"), QStringLiteral("\\bSUB\\b"),
-            QStringLiteral("\\bMUL\\b"), QStringLiteral("\\bDIV\\b"), QStringLiteral("\\bMOD\\b"),
-            QStringLiteral("\\bAND\\b"), QStringLiteral("\\bNOT\\b"), QStringLiteral("\\bLOAD\\b"),
-            QStringLiteral("\\bSTORE\\b"), QStringLiteral("\\bINPUT\\b"), QStringLiteral("\\bOUTPUT\\b"),
-            QStringLiteral("\\bJUMP\\b"), QStringLiteral("\\bSKIPLO\\b"), QStringLiteral("\\bSKIPGT\\b"),
-            QStringLiteral("\\bSKIPEQ\\b"), QStringLiteral("\\bJNS\\b")
-        };
+        const QVector<QString> keyword_patterns = [] {
+            QVector<QString> patterns;
+            patterns.reserve(snm::OPCODE_PROPERTIES.size()); // NOLINT(*-narrowing-conversions)
+
+            for (const auto& prop : snm::OPCODE_PROPERTIES | std::views::values) {
+                patterns.push_back(QStringLiteral("\\b%1\\b").arg(QString::fromStdString(prop.name)));
+            }
+
+            return patterns;
+        }();
+
         for (const QString& pattern : keyword_patterns) {
             highlighting_rules_.append({QRegularExpression(pattern), keyword_format});
         }

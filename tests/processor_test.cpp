@@ -563,3 +563,13 @@ TEST_P(ProcessorTest, JumpNStore) {
     // Проверка, что был сохранен возвратный адрес
     EXPECT_EQ(static_cast<snm::Address>(ReadMemory(target_address)), 1);
 }
+
+TEST_F(ProcessorTest, Halt) {
+    constexpr auto opcode = snm::OpCode::HALT;
+    WriteInstruction(opcode, snm::TypeModifier::C, snm::ArgModifier::NONE, snm::Bytes(0), 0);
+    WriteInstruction(snm::OpCode::ADD, snm::TypeModifier::C, snm::ArgModifier::NONE, snm::Bytes(1), 1);
+    WriteInstruction(snm::OpCode::ADD, snm::TypeModifier::C, snm::ArgModifier::NONE, snm::Bytes(1), 2);
+    processor->Run();
+    EXPECT_EQ(processor->IsRunning(), false);
+    EXPECT_EQ(GetIP(), 0);
+}
