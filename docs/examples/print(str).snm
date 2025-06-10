@@ -40,9 +40,7 @@ Print:
 		Jump Print_Loop
 		
 	Print_End:
-	// Вывод символов CRLF
-	Load 0x0D
-	Output C
+	// Вывод символаLF
 	Load 0x0A
 	Output C
 	
