@@ -346,7 +346,7 @@ Add && Two // ACC = ACC + Memory[Memory[Two]] = 3 + Memory[Memory[1]] = 3 + Memo
     Store b 
   ```
 
-### Конструкция вида if-else
+### Условие if-else
 
   ```asm
     // Пример программы для определения чётности числа
@@ -365,7 +365,7 @@ Add && Two // ACC = ACC + Memory[Memory[Two]] = 3 + Memory[Memory[1]] = 3 + Memo
     End_if:
   ```
 
-### Конструкция вида if-elseif-else
+### Условие if-elseif-else
   Первый вариант конструкции, когда требуется проверка на равенство в условиях
   ```asm
     // Программа проверяет остаток от деления числа на 3 и выполняет различные действия в зависимости от результата
@@ -423,7 +423,7 @@ Add && Two // ACC = ACC + Memory[Memory[Two]] = 3 + Memory[Memory[1]] = 3 + Memo
     End_if:
   ```
 
-### Цикл со счетчиком
+### Цикл for
   В общем случае цикл, эквивалентный C-циклу `for (int i = 0; i < 10; i++)`, будет выглядеть следующим образом:
   ```asm
     i: 0  // Счетчик
@@ -457,7 +457,7 @@ Add && Two // ACC = ACC + Memory[Memory[Two]] = 3 + Memory[Memory[1]] = 3 + Memo
     End_loop:
   ```
 
-### Вложенные циклы
+### Вложенный цикл for
   Пример C-цикла:
   ```c++
     for (int i = 0; i < 5; i++) {
@@ -505,9 +505,23 @@ Add && Two // ACC = ACC + Memory[Memory[Two]] = 3 + Memory[Memory[1]] = 3 + Memo
     End_loop:
   ```
 
-### Цикл с условием
+### Цикл while
+  Пример C-цикла:
+  ```c++
+    bool n = true;
+    while (n) {
+        // <Действия цикла, если n == true>
+    }
+  ```
   ```asm
-    
+    n: 1
+    Loop:
+        Load & n // Регистр ACC и n могут изменяться в цикле
+        SkipEq 1
+        Jump End_loop
+        // <Действия цикла, если n == 1>
+        Jump Loop
+    End_loop:
   ```
 
 ### Вызов подпрограммы
@@ -522,11 +536,49 @@ Add && Two // ACC = ACC + Memory[Memory[Two]] = 3 + Memory[Memory[1]] = 3 + Memo
 	    Jump & program1 // возврат из подпрограммы
   ```
 
-### Реализация стека и рекурсивного вызова
-  Данный пример показывает пример реализации стека и пример использования рекурсивного вызова с использованием стека.
+### Реализация стека
   ```asm
-    // Указатель на адрес помещения/взятия значения
+    // Указатель на адрес помещения значения
     // Указывается свободное адресное пространство начиная с данного
+    StackPointer: 0xFF00
+    
+    Load 5
+    JnS Push // Положить на стек 5 (ACC), StackPointer = 0xFF01
+    JnS Pop  // Взять со стека 5 и положить в ACC , StackPointer = 0xFF00
+    Halt
+    
+    // Процедура помещает на стек значение ACC.
+    // Увеличивает значение StackPointer на 1.
+    Push:
+        // Помещение на стек значения ACC
+        Push_ACC_original: 0
+        Store & StackPointer
+        Store Push_ACC_original
+        // Инкремент указателя StackPointer
+        Load & StackPointer
+        Add W 1
+        Store StackPointer
+        // Восстановление значения ACC
+        Load & Push_ACC_original
+        
+        Jump & Push
+    
+    // Процедура достает со стека значение по указателю StackPointer и помещает в ACC.   
+    // Уменьшает значение StackPointer на 1.
+    Pop:
+        // StackPointer указывает на адрес помещения. Последнее значение хранится по предыдущему адресу.
+        Load & StackPointer
+        Sub W 1
+        Store StackPointer   // Запись нового значения указателя
+        Load && StackPointer // Запись в ACC значения из стека
+        
+        Jump & Pop
+  ```
+
+### Реализация рекурсивного вызова
+  Данная функция показывает пример реализации рекурсивного вызова подпрограммы с использованием [стека](#реализация-стека).
+  Данный алгоритм не является оптимальным, а лишь демонстрирует принцип рекурсивного вызова.
+  ```asm
     StackPointer: 0xFF00
     
     // Пример вызова подпрограммы вычисления рекурсии
@@ -588,30 +640,5 @@ Add && Two // ACC = ACC + Memory[Memory[Two]] = 3 + Memory[Memory[1]] = 3 + Memo
     	// Восстановление вычисленного значения
     	Load & Factorial_tmp3
     	// Возврат из подпрограммы
-    	Jump & Factorial
-    
-    // Процедура помещает на стек значение ACC.
-    // Увеличивает значение StackPointer на 1.
-    Push:
-        // Помещение на стек значения ACC
-        Push_ACC_original: 0
-        Store & StackPointer
-        Store Push_ACC_original
-        // Инкремент указателя StackPointer
-        Load & StackPointer
-        Add W 1
-        Store StackPointer
-        // Восстановление значения ACC
-        Load & Push_ACC_original
-        
-        Jump & Push
-    
-    // Процедура достает со стека значение по указателю StackPointer и помещает в ACC.   
-    // Уменьшает значение StackPointer на 1.
-    Pop:
-        Load & StackPointer
-        Sub W 1
-        Store StackPointer
-        Load && StackPointer
-        Jump & Pop
+    	Jump & Factorial 
   ```
