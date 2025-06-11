@@ -16,5 +16,7 @@
         <file>docs/examples/bubble_sort(array).snm</file>
         <file>docs/examples/print(str).snm</file>
         <file>docs/examples/max(array).snm</file>
+        <file>docs/examples/stack.snm</file>
+        <file>docs/examples/factorial(n).snm</file>
     </qresource>
 </RCC>

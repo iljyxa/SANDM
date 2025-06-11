@@ -1,0 +1,90 @@
+// Данная программа показывает пример реализации рекурсивного вызова подпрограммы с использованием стека.
+// Данный алгоритм не является оптимальным, а лишь демонстрирует принцип рекурсивного вызова.
+StackPointer: 0xFF00
+
+// Помещение параметра N на стек, как требует подпрограмма
+Load 10
+JnS Push
+// Вызов подпрограммы
+JnS Factorial
+// Вывод результата
+Output W
+// Перенос строки
+Load 0x0A
+Output C
+// Завершение программы
+Halt
+
+// Рекурсивная функция вычисления факториала N.
+// Параметр N передается через стек.
+// Результат вычисления помещается в ACC
+Factorial:
+	Factorial_tmp0: 0
+	// Получение значения параметра с сохранением его на стеке
+	JnS Pop
+	JnS Push
+  	Store Factorial_tmp0
+    	// Сохранение адреса возврата на стеке для возможности рекурсивного вызова
+    	Load & Factorial
+    	JnS Push
+    	// Восстановление в ACC = N
+    	Load & Factorial_tmp0
+    	SkipLo W 2 // Если N <= 1 то это базовый случай и результат 1
+   		Jump Factorial_N // Иначе вычисление факториала N
+    	Factorial_base_case:
+    		// f(N) = 1
+    		Load 1
+    		Jump Factorial_return
+    	Factorial_N:
+    		// f(N) = N * f(n - 1)
+    		// Рекурсивный вызов подпрограммы с параметром N - 1
+    		Sub W 1
+    		JnS Push
+    		JnS Factorial
+
+    		Factorial_tmp2: 0 // Для сохранения результата вычисления подпрограммы
+    		Store Factorial_tmp2
+    		JnS Pop				  // ACC = N - 1
+    		Add W 1				  // ACC = ACC + 1
+    		Mul W & Factorial_tmp2 // ACC = ACC * f(n - 1)
+
+    	// Возврат из подпрограммы
+    	Factorial_return:
+    	// Необходимо восстановить адрес возврата. Так как в ACC сейчас вычисленное значение,
+    	// его необходимо сохранить в переменной.
+    	Factorial_tmp3: 0
+    	Store Factorial_tmp3
+    	// Восстановление адреса возврата
+    	JnS Pop
+    	Store Factorial
+    	// Восстановление вычисленного значения
+    	Load & Factorial_tmp3
+    	// Возврат из подпрограммы
+    	Jump & Factorial
+
+// Процедура помещает на стек значение ACC.
+// Увеличивает значение StackPointer на 1.
+Push:
+    // Помещение на стек значения ACC
+    Push_ACC_original: 0
+    Store & StackPointer
+    Store Push_ACC_original
+    // Инкремент указателя StackPointer
+    Load & StackPointer
+    Add W 1
+    Store StackPointer
+    // Восстановление значения ACC
+    Load & Push_ACC_original
+
+    Jump & Push
+
+// Процедура достает со стека значение по указателю StackPointer и помещает в ACC.
+// Уменьшает значение StackPointer на 1.
+Pop:
+    // StackPointer указывает на адрес помещения. Последнее значение хранится по предыдущему адресу.
+    Load & StackPointer
+    Sub W 1
+    Store StackPointer   // Запись нового значения указателя
+    Load && StackPointer // Запись в ACC значения из стека
+
+    Jump & Pop

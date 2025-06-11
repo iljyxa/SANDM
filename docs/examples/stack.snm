@@ -1,0 +1,41 @@
+// Данная программа демонстрирует пример реализации программного стека.
+// В данной реализации не контроллируется выход за пределы стека - это обязанность разработчика.
+// StackPointer может указывать на любой адрес с учетом того, что при помещении на стек, адрес увеличивается.
+StackPointer: 0xFF00
+
+Load 5
+JnS Push // Положить на стек 5 (ACC), StackPointer = 0xFF01
+Load 10
+JnS Push // Положить на стек 10 (ACC), StackPointer = 0xFF01
+
+JnS Pop  // Взять со стека 10 и положить в ACC , StackPointer = 0xFF00
+JnS Pop  // Взять со стека 5 и положить в ACC , StackPointer = 0xFF00
+
+Halt
+
+// Процедура помещает на стек значение ACC.
+// Увеличивает значение StackPointer на 1.
+Push:
+    // Помещение на стек значения ACC
+    Push_ACC_original: 0
+    Store & StackPointer
+    Store Push_ACC_original
+    // Инкремент указателя StackPointer
+    Load & StackPointer
+    Add W 1
+    Store StackPointer
+    // Восстановление значения ACC
+    Load & Push_ACC_original
+
+    Jump & Push
+
+// Процедура достает со стека значение по указателю StackPointer и помещает в ACC.
+// Уменьшает значение StackPointer на 1.
+Pop:
+    // StackPointer указывает на адрес помещения. Последнее значение хранится по предыдущему адресу.
+    Load & StackPointer
+    Sub W 1
+    Store StackPointer   // Запись нового значения указателя
+    Load && StackPointer // Запись в ACC значения из стека
+
+    Jump & Pop
