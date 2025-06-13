@@ -41,9 +41,9 @@ add_subdirectory(gui)
 add_subdirectory(tests)
 
 if(WIN32)
-    set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/sandm.ico")
+    set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/sandm.ico")
 elseif(APPLE)
-    set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/sandm.icns")
+    set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/icons/sandm.icns")
 endif()
 
 qt_add_executable(SANDM
