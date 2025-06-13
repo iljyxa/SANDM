@@ -40,10 +40,31 @@ add_subdirectory(core)
 add_subdirectory(gui)
 add_subdirectory(tests)
 
+if(WIN32)
+    set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/sandm.ico")
+elseif(APPLE)
+    set(APP_ICON "${CMAKE_CURRENT_SOURCE_DIR}/resources/icons/sandm.icns")
+endif()
+
 qt_add_executable(SANDM
+        WIN32 MACOSX_BUNDLE
         main.cpp
         ${RESOURCES}
 )
+
+if(WIN32 AND EXISTS "${APP_ICON}")
+    set_target_properties(SANDM PROPERTIES
+            RC_ICONS "${APP_ICON}"
+    )
+elseif(APPLE AND EXISTS "${APP_ICON}")
+    set_target_properties(SANDM PROPERTIES
+            MACOSX_BUNDLE_ICON_FILE "sandm.icns"
+    )
+    set_source_files_properties("${APP_ICON}" PROPERTIES
+            MACOSX_PACKAGE_LOCATION "Resources"
+    )
+    target_sources(SANDM PRIVATE "${APP_ICON}")
+endif()
 
 target_include_directories(SANDM PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -62,6 +83,10 @@ install(TARGETS SANDM
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+if (WIN32 AND MINGW)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-subsystem,windows")
+endif()
 
 qt_generate_deploy_app_script(
         TARGET SANDM

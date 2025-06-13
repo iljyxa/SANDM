@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
 
     QApplication app(argc, argv);
 
-    app.setWindowIcon(QIcon(":/resources/icons/icon.svg")); // NOLINT(*-static-accessed-through-instance)
+    app.setWindowIcon(QIcon(":/resources/icons/sandm.svg")); // NOLINT(*-static-accessed-through-instance)
     app.setApplicationName("SANDM"); // NOLINT(*-static-accessed-through-instance)
     app.setApplicationVersion(APP_VERSION_STRING); // NOLINT(*-static-accessed-through-instance)
     app.setFont(QFont ("Droid Sans Mono")); // NOLINT(*-static-accessed-through-instance)

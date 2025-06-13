@@ -137,7 +137,6 @@ void MainWindow::LoadExamples() {
     examples_menu_->clear();
 
     const QString resource_prefix = ":/docs/examples/";
-    //QResource::registerResource(qApp->applicationDirPath() + "/resources.rcc");
 
     QStringList resource_files;
     QDirIterator it(resource_prefix, QDirIterator::Subdirectories);
