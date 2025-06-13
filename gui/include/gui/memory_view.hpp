@@ -8,6 +8,10 @@
 
 #include "core/common_definitions.hpp"
 
+/**
+ * @class MemoryView
+ * @brief Класс для визуализации авбстрактной модели памяти
+ */
 class MemoryView final : public QTableView {
     Q_OBJECT
 

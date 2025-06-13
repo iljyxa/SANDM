@@ -7,6 +7,11 @@
 
 #include "gui/style_colors.hpp"
 
+/**
+ * @class Highlighter
+ * @brief Класс, предоставляющий функциональность подсветки синтаксиса для текстового документа.
+ *
+ */
 class Highlighter final : public QSyntaxHighlighter {
     Q_OBJECT
 

@@ -7,6 +7,14 @@
 #include "gui/hex_spin_box.hpp"
 #include "gui/spin_box_hoverable.hpp"
 
+/**
+ * @class RegisterEditor
+ * @brief Класс для редактирования и управления регистрами.
+ *
+ * Класс предоставляет функциональность для модификации, чтения и управления
+ * регистрами.
+ *
+ */
 class RegisterEditor final : public QWidget {
     Q_OBJECT
 

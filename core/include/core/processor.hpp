@@ -179,7 +179,7 @@ private:
     MemoryManager& memory_; ///< Менеджер памяти
     ProcessorObserver* observer_; ///< Текущий наблюдатель состояния
     ProcessorIo* io_; ///< Обработчик ввода-вывода
-    Registers registers_;
+    Registers registers_; ///< Регистры процессора
     snm::ProcessorState state_; ///< Состояние процессора в данный момент
 
     std::array<std::function<void()>, std::numeric_limits<snm::Byte>::max() + 1> instructions_handlers_;

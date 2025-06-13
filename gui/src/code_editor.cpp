@@ -235,7 +235,7 @@ void CodeEditor::paintEvent(QPaintEvent* event) {
     QPlainTextEdit::paintEvent(event);
     QPainter painter(viewport());
 
-    // Highlight lines
+    // Highlight execution lines (без изменений)
     for (const unsigned int line : highlighted_lines_) {
         QTextBlock block = document()->findBlockByNumber(line - 1);
         if (block.isValid()) {
@@ -244,17 +244,55 @@ void CodeEditor::paintEvent(QPaintEvent* event) {
         }
     }
 
-    // Underline lines with errors
+    // Подчеркивание ошибок с правильным учетом табуляции
     painter.setPen(QPen(Qt::red, 1, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
     for (const unsigned int line : underlined_lines_) {
         QTextBlock block = document()->findBlockByNumber(line - 1);
         if (block.isValid()) {
-            QRectF rect = blockBoundingGeometry(block).translated(contentOffset()).toRect();
             QString text = block.text();
             if (!text.isEmpty()) {
-                QFontMetrics fm(block.charFormat().font());
-                const int width = fm.horizontalAdvance(text);
-                DrawWavyLine(painter, rect.bottomLeft(), rect.bottomLeft() + QPointF(width, 0));
+                // Находим начало и конец значимого текста
+                int start_pos = 0;
+                while (start_pos < text.length() && text.at(start_pos).isSpace()) {
+                    start_pos++;
+                }
+
+                int end_pos = text.length();
+                int comment_pos = text.indexOf("//");
+                if (comment_pos != -1 && comment_pos > start_pos) {
+                    end_pos = comment_pos;
+                }
+
+                while (end_pos > start_pos && text.at(end_pos - 1).isSpace()) {
+                    end_pos--;
+                }
+
+                if (start_pos < end_pos) {
+                    QFontMetrics fm(block.charFormat().font());
+                    const int space_width = fm.horizontalAdvance(' ');
+
+                    // Вычисляем ширину с учетом табуляции
+                    auto calculateTextWidth = [&](const QString& str) {
+                        int width = 0;
+                        for (const QChar& c : str) {
+                            if (c == '\t') {
+                                width += space_width * 4; // Табуляция = 4 пробела
+                            } else {
+                                width += fm.horizontalAdvance(c);
+                            }
+                        }
+                        return width;
+                    };
+
+                    int leading_spaces_width = calculateTextWidth(text.left(start_pos));
+                    int text_width = calculateTextWidth(text.mid(start_pos, end_pos - start_pos));
+
+                    QRectF rect = blockBoundingGeometry(block).translated(contentOffset()).toRect();
+                    QPointF start_point = rect.bottomLeft() + QPointF(leading_spaces_width, 0);
+                    QPointF end_point = start_point + QPointF(text_width, 0);
+
+                    DrawWavyLine(painter, start_point, end_point);
+                }
             }
         }
     }

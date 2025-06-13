@@ -4,6 +4,11 @@
 
 #include <QSpinBox>
 
+/**
+ * @class SpinBoxHoverable
+ * @brief QSpinBox с возможностью отслеживания наведения указателя мыши на элемент
+ *
+ */
 class SpinBoxHoverable : public QSpinBox {
     Q_OBJECT
 public:

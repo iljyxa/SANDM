@@ -7,6 +7,10 @@
 #include "core/virtual_machine.hpp"
 #include "gui/virtual_machine_controller.hpp"
 
+/**
+ * @class MemoryModel
+ * @brief Класс для асбстрактного представления модели памяти в виде таблицы.
+ */
 class MemoryModel final : public QAbstractTableModel {
     Q_OBJECT
 

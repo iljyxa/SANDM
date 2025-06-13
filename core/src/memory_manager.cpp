@@ -2,11 +2,11 @@
 #include "core/memory_manager.hpp"
 
 void MemoryManager::Load(const snm::ByteCode& byte_code) {
-    instructions_.clear();
+    opcodes_.clear();
     arguments_.clear();
     arguments_original_.clear();
 
-    instructions_.reserve(byte_code.size() / 5);
+    opcodes_.reserve(byte_code.size() / 5);
     arguments_.reserve(byte_code.size() / 5);
 
     if (byte_code.size() > std::numeric_limits<snm::Address>::max()) {
@@ -32,34 +32,34 @@ void MemoryManager::Load(const snm::ByteCode& byte_code) {
         address++;
     }
 
-    instructions_.shrink_to_fit();
+    opcodes_.shrink_to_fit();
     arguments_.shrink_to_fit();
     arguments_original_.shrink_to_fit();
     arguments_original_ = arguments_;
 }
 
 std::pair<snm::Byte, snm::Bytes> MemoryManager::ReadInstruction(const snm::Address address) {
-    if (address > instructions_.size() - 1 || instructions_.empty()) {
+    if (address > opcodes_.size() - 1 || opcodes_.empty()) {
         throw std::out_of_range("Instruction address out of range.");
     }
 
-    return std::make_pair(instructions_[address], arguments_[address]);
+    return std::make_pair(opcodes_[address], arguments_[address]);
 }
 
 void MemoryManager::WriteInstruction(const snm::Byte code, const snm::Bytes argument,
                                      const snm::Address address) {
 
-    if (instructions_.size() <= address) {
-        instructions_.resize(address + 1);
+    if (opcodes_.size() <= address) {
+        opcodes_.resize(address + 1);
         arguments_.resize(address + 1);
     }
 
-    instructions_[address] = code;
+    opcodes_[address] = code;
     arguments_[address] = argument;
 }
 
 void MemoryManager::WriteInstruction(const snm::Byte code, const snm::Bytes argument) {
-    instructions_.push_back(code);
+    opcodes_.push_back(code);
     arguments_.push_back(argument);
 }
 
@@ -80,7 +80,7 @@ snm::Bytes MemoryManager::ReadArgument(const snm::Address address) const {
 }
 
 void MemoryManager::Reset() {
-    instructions_.clear();
+    opcodes_.clear();
     arguments_.clear();
     arguments_original_.clear();
 }
@@ -90,5 +90,5 @@ void MemoryManager::ResetData() {
 }
 
 size_t MemoryManager::Size() const {
-    return instructions_.size();
+    return opcodes_.size();
 }

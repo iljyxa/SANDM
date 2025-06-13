@@ -5,6 +5,11 @@
 #include <QColor>
 #include <QStyleHints>
 
+/**
+ * @class StyleColors
+ * @brief Цвета стиля, меняющиеся в зависимости от темы
+ *
+ */
 class StyleColors {
 public:
     static QColor Main() {
