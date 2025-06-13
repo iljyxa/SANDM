@@ -4,6 +4,9 @@
 #include <QModelIndex>
 #include <QMouseEvent>
 #include <QTableView>
+#include <QPainter>
+
+#include "core/common_definitions.hpp"
 
 class MemoryView final : public QTableView {
     Q_OBJECT
@@ -14,7 +17,6 @@ public:
         setMouseTracking(true);
         setSelectionMode(SingleSelection);
         setSelectionBehavior(SelectItems);
-        setStyleSheet("QTableView::item:hover { background-color: rgba(128, 128, 128, 50); }");
     }
 
     void SetReadOnly(const bool read_only) {
@@ -29,6 +31,17 @@ signals:
     void CellHovered(int row, int column, std::optional<snm::Word> value);
 
 protected:
+    void paintEvent(QPaintEvent* event) override {
+        QTableView::paintEvent(event);  // Стандартная отрисовка таблицы
+
+        // Если есть hover-ячейка, рисуем поверх неё полупрозрачный прямоугольник
+        if (hovered_row_ >= 0 && hovered_column_ >= 0) {
+            QPainter painter(viewport());
+            const QRect rect = visualRect(model()->index(hovered_row_, hovered_column_));
+            painter.fillRect(rect, QColor(128, 128, 128, 50));  // Полупрозрачный серый
+        }
+    }
+
     void mouseMoveEvent(QMouseEvent* event) override {
         if (const QModelIndex index = indexAt(event->pos()); index.isValid()) {
             hovered_row_ = index.row();
