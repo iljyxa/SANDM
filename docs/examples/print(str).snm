@@ -40,7 +40,7 @@ Print:
 		Jump Print_Loop
 		
 	Print_End:
-	// Вывод символаLF
+	// Вывод символа LF
 	Load 0x0A
 	Output C
 	

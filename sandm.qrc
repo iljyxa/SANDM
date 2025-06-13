@@ -18,5 +18,6 @@
         <file>docs/examples/max(array).snm</file>
         <file>docs/examples/stack.snm</file>
         <file>docs/examples/factorial(n).snm</file>
+        <file>docs/examples/nested_loop.snm</file>
     </qresource>
 </RCC>
