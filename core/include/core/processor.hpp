@@ -5,6 +5,8 @@
 #include <bitset>
 #include <functional>
 // ReSharper disable once CppUnusedIncludeDirective
+#include <cmath>
+// ReSharper disable once CppUnusedIncludeDirective
 #include <thread>
 
 #include "core/common_definitions.hpp"
