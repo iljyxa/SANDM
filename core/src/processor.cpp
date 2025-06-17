@@ -89,6 +89,9 @@ Processor::Processor(MemoryManager& memory, ProcessorObserver* observer, Process
     instructions_handlers_[InstructionByte(snm::OpCode::MOD, snm::TypeModifier::SW)] = [this] {
         Mod<snm::SignedWord>();
     };
+    instructions_handlers_[InstructionByte(snm::OpCode::MOD, snm::TypeModifier::R)] = [this] {
+        Mod<snm::Real>();
+    };
 
     // load
     instructions_handlers_[InstructionByte(snm::OpCode::LOAD, snm::TypeModifier::C)] = [this] {
@@ -383,7 +386,7 @@ template <typename T>
 void Processor::Div() {
     T value = static_cast<T>(registers_.auxiliary);
 
-    if (value == 0) {
+    if (value == static_cast<T>(0)) {
         throw std::runtime_error("Error: Division by zero");
     }
 
@@ -393,10 +396,22 @@ void Processor::Div() {
 
 template <typename T>
 void Processor::Mod() {
-    if (static_cast<T>(registers_.auxiliary) == 0) {
+    const T lhs = static_cast<T>(registers_.accumulator);
+    const T rhs = static_cast<T>(registers_.auxiliary);
+
+    if (rhs == static_cast<T>(0)) {
         throw std::runtime_error("Error: Modulo by zero");
     }
-    SetAccumulator(static_cast<T>(static_cast<T>(registers_.accumulator) % static_cast<T>(registers_.auxiliary)));
+
+    T result;
+
+    if constexpr (std::is_same_v<T, snm::Real>) {
+        result = std::fmodf(lhs, rhs);
+    } else {
+        result = lhs % rhs;
+    }
+
+    SetAccumulator(result);
     NextInstruction();
 }
 
@@ -447,7 +462,7 @@ void Processor::Input() {
 
 template <typename T>
 void Processor::Output() {
-    snm::Type type = TypeIo<T>();
+    const snm::Type type = TypeIo<T>();
 
     if (io_) {
         io_->OutputRequest(registers_.accumulator, type);

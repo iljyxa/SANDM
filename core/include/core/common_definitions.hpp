@@ -167,7 +167,7 @@ namespace snm {
         {
             OpCode::MOD,
             {
-                {TypeModifier::C, TypeModifier::W, TypeModifier::SW},
+                {TypeModifier::C, TypeModifier::W, TypeModifier::SW, TypeModifier::R},
                 {ArgModifier::NONE, ArgModifier::REF, ArgModifier::REF_REF},
                 true,
                 true,
