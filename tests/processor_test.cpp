@@ -313,7 +313,7 @@ TEST_P(ProcessorTest, Mod) {
     SetA(snm::Bytes(static_cast<snm::Real>(3.14)));
     SetB(snm::Bytes(static_cast<snm::Real>(1.0)));
     result = Calc(opcode, snm::TypeModifier::R, arg_modifier);
-    EXPECT_EQ(static_cast<snm::Real>(result), std::fmodf(static_cast<snm::Real>(3.14), static_cast<snm::Real>(1.0)));
+    EXPECT_EQ(static_cast<snm::Real>(result), ::fmodf(static_cast<snm::Real>(3.14), static_cast<snm::Real>(1.0)));
 
     SetA(snm::Bytes(1));
     SetB(snm::Bytes(0));
