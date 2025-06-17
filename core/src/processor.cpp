@@ -406,7 +406,7 @@ void Processor::Mod() {
     T result;
 
     if constexpr (std::is_same_v<T, snm::Real>) {
-        result = std::fmodf(lhs, rhs);
+        result = ::fmodf(lhs, rhs);
     } else {
         result = lhs % rhs;
     }
